@@ -12,12 +12,19 @@
   "license": "ISC",
   "dependencies": {
     "-": "^0.0.1",
+    "@prisma/client": "^6.0.1",
     "@types/express": "^5.0.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "nodemon": "^3.1.9",
     "save-dev": "^0.0.1-security",
-    "ts-node": "^10.9.2",
+    "socket.io": "^4.8.1",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "prisma": "^6.0.1",
+    "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   }
 }
