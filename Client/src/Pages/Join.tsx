@@ -37,9 +37,9 @@ const Join = () => {
   }
 
   return (
-    <div className="h-screen w-full bg-zinc-800 flex items-center justify-center">
-      <div className="bg-zinc-900 rounded-lg shadow-lg w-[20%] p-10">
-        <h1 className="text-2xl font-bold text-center text-zinc-100">Join / Create a Room</h1>
+    <div className="h-screen w-full bg-zinc-900 flex items-center justify-center">
+      <div className="bg-zinc-800 rounded-lg shadow-lg w-[20%] p-10">
+        <h1 className="text-2xl font-bold text-center text-zinc-400 font-mono">Join / Create a Room</h1>
 
         <div className="mt-4">
           <input
@@ -48,7 +48,7 @@ const Join = () => {
             value={formData.roomID}
             onChange={handleChange}
             placeholder="Room ID"
-            className="w-full p-2 rounded-lg bg-zinc-800 text-zinc-100 outline-none"
+            className="w-full p-2 rounded-lg bg-zinc-700 text-white outline-none font-mono"
           />
         </div>
 
@@ -59,19 +59,19 @@ const Join = () => {
             value={formData.username}
             onChange={handleChange}
             placeholder="Username"
-            className="w-full p-2 rounded-lg bg-zinc-800 text-zinc-100 outline-none"
+            className="w-full p-2 rounded-lg bg-zinc-700 text-white outline-none font-mono"
           />
         </div>
 
         <div className="mt-4">
           <button
             onClick={handleJoin}
-            className="w-full p-2 rounded-lg mb-1 bg-zinc-700 text-zinc-100">
+            className="w-full p-2 rounded-lg mb-1 hover:border-zinc-300 border-transparent transition-all ease-in-out duration-300 border-b border-l shadow shadow-zinc-400  text-white   font-mono">
             Join
           </button>
           <button
             onClick={handleCreate}
-            className="w-full p-2 rounded-lg mt-1 bg-green-700 text-zinc-100">
+            className="w-full p-2 rounded-lg mt-1 text-white hover:border-zinc-300 border-transparent transition-all ease-in-out duration-300 border-b border-l shadow shadow-zinc-400  font-mono">
             Create
           </button>
         </div>

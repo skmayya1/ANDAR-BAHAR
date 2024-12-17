@@ -19,6 +19,8 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     const [socket, setSocket] = useState<Socket | null>(null);
     const [msg, setmsg] = useState("dnsjfbhds")
 
+
+
     useEffect(() => {
         const newSocket = io('http://localhost:3000');
         setSocket(newSocket);
