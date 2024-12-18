@@ -1,80 +1,76 @@
-import { useConnection } from '@solana/wallet-adapter-react';
-import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { PiSignOutFill } from "react-icons/pi";
-import {  useState } from 'react';
+import LoadingSpinner from './LoadingSpinner';
+import { useEffect, useState } from 'react';
+
 const Navbar = () => {
-    const [walletAddress, setWalletAddress] = useState<string | null>(null);
-    const selectedWallet = new PhantomWalletAdapter();
-    const [isConnected, setIsConnected] = useState(false);
-    const [Balance, setBalance] = useState(0.00)
-    const { connection} = useConnection();
-    if (!connection) console.log("dvsgdsg");
-    console.log(connection);
-    
-    
+    const { connect, connected, connecting, disconnect, disconnecting, wallets, select, publicKey } = useWallet();
+    const { connection } = useConnection();
+    const [balance, setBalance] = useState<string | null>(null);
+
+    useEffect(() => {
+        wallets.forEach((wallet) => console.log(wallet.adapter));
+    }, [wallets]);
+
+    useEffect(() => {
+        const fetchBalance = async () => {
+            if (publicKey) {
+                const balance = await connection.getBalance(publicKey);
+                setBalance((balance / LAMPORTS_PER_SOL).toFixed(2));
+            }
+        };
+        fetchBalance();
+    }, [publicKey, connection]);
+
     const handleConnect = async () => {
-        if (!selectedWallet) {
-            alert('Please select a wallet.');
-            return;
-        }
-
         try {
-            await selectedWallet.connect();
-            if (selectedWallet.publicKey) {
-                setWalletAddress(selectedWallet.publicKey?.toBase58() || null);
-                const balance = await connection.getBalance(selectedWallet.publicKey);
-                setBalance(balance / LAMPORTS_PER_SOL);
-                setIsConnected(true);
-             }
-
+            const walletName = wallets[0]?.adapter.name;
+            if (!walletName) return console.error('No wallet found');
+            select(walletName);
+            await connect();
         } catch (error) {
-            console.error('Error connecting wallet:', error);
+            console.error('Failed to connect wallet:', error);
         }
     };
 
     const handleDisconnect = async () => {
-        if (selectedWallet) {
-            await selectedWallet.disconnect();
-            setWalletAddress(null);
-            setIsConnected(false);
+        try {
+            await disconnect();
+            setBalance(null); // Clear balance after disconnect
+        } catch (error) {
+            console.error('Failed to disconnect wallet:', error);
         }
     };
 
     return (
         <div className="absolute flex items-center w-full justify-end px-20 py-6 gap-2">
-            {isConnected &&
-                <div className="h-10 w-fit px-5 border border-zinc-700 rounded-lg text-zinc-400  font-semibold font-mono flex items-center justify-center text-sm ">
-                    <p>{(Balance)}</p>
+            {connected && (
+                <div className="h-10 w-fit px-5 border border-zinc-700 rounded-lg text-zinc-400 font-semibold font-mono flex items-center justify-center text-sm">
+                    <p>{balance} SOL</p>
                 </div>
-            }
-            <div className="h-10 w-40 p-2 border border-zinc-700 text-zinc-300 rounded-lg ">
-                {!isConnected ? (
-                        <button
-                            className="w-full h-full font-semibold text-sm flex items-center justify-center text-zinc-200 rounded-lg "
-                            onClick={handleConnect}
-                        >
-                            Connect Wallet
-                        </button>
+            )}
+            <div className="h-10 w-40 p-2 border border-zinc-700 text-zinc-300 rounded-lg">
+                {connecting ? (
+                    <LoadingSpinner  />
+                ) : !connected ? (
+                    <button onClick={handleConnect} disabled={connecting}>
+                        Connect Wallet
+                    </button>
                 ) : (
-                        <div className='flex  items-center justify-center'>
-                            <button
-                                className='text-sm text-purple-500 font-medium font-mono'>
-                                {walletAddress?.substring(0, 15)}...
-                            </button>
-                        </div>
-                        
+                    <button className='text-sm text-purple-500 font-medium font-mono'>
+                        {publicKey?.toBase58().substring(0, 10) + '...'}
+                    </button>
                 )}
-                
             </div>
-            {isConnected &&
+            {connected && (
                 <button
-                    className=" bg-zinc-800  p-3  text-zinc-200 rounded-lg hover:bg-zinc-700 transition-all duration-300 ease-in-out"
+                    className="bg-zinc-800 p-3 text-zinc-200 rounded-lg hover:bg-zinc-700 transition-all duration-300 ease-in-out"
                     onClick={handleDisconnect}
                 >
-                    <PiSignOutFill />
+                    {disconnecting ? <LoadingSpinner /> : <PiSignOutFill />}
                 </button>
-            }
+            )}
         </div>
     );
 };

@@ -7,10 +7,6 @@ import { clusterApiUrl } from '@solana/web3.js';
 import { useMemo } from 'react';
 import {
   PhantomWalletAdapter,
-  SolflareWalletAdapter,
-  TorusWalletAdapter,
-  LedgerWalletAdapter,
-  UnsafeBurnerWalletAdapter
 } from '@solana/wallet-adapter-wallets';
 import {
   ConnectionProvider,
@@ -28,28 +24,22 @@ const router = createBrowserRouter([
 ]);
 
 const App = () => {
-  const network = WalletAdapterNetwork.Devnet;  // Set the network
+  const network = WalletAdapterNetwork.Devnet;  
 
-  // Get the Solana RPC URL based on the network
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
-  // List of wallets
   const wallets: Adapter[] = useMemo(
     () => [
       new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
-      new TorusWalletAdapter(),
-      new LedgerWalletAdapter(),
-      new UnsafeBurnerWalletAdapter(), // Use only for development purposes
     ],
-    [] // Dependency array to prevent unnecessary re-renders
+    [] 
   );
 
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <Navbar  /> {/* Pass props */}
+          <Navbar  /> 
           <RouterProvider router={router} />
         </WalletModalProvider>
       </WalletProvider>
