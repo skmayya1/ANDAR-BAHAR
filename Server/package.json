@@ -12,7 +12,6 @@
   "license": "ISC",
   "dependencies": {
     "-": "^0.0.1",
-    "@prisma/client": "^6.0.1",
     "@types/express": "^5.0.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
@@ -22,8 +21,11 @@
     "ts-node": "^10.9.2"
   },
   "devDependencies": {
+    "@prisma/client": "^6.1.0",
     "@types/node": "^22.10.2",
-    "prisma": "^6.0.1",
+    "i": "^0.3.7",
+    "npm": "^11.0.0",
+    "prisma": "^6.1.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   }
