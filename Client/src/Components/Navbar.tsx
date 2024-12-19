@@ -50,11 +50,11 @@ const Navbar = () => {
                     <p>{balance} SOL</p>
                 </div>
             )}
-            <div className="h-10 w-40 p-2 border border-zinc-700 text-zinc-300 rounded-lg">
+            <div className="h-10 w-40 p-2 border border-zinc-700 text-zinc-300 rounded-lg text-center">
                 {connecting ? (
                     <LoadingSpinner  />
                 ) : !connected ? (
-                    <button onClick={handleConnect} disabled={connecting}>
+                    <button className='' onClick={handleConnect} disabled={connecting}>
                         Connect Wallet
                     </button>
                 ) : (
