@@ -16,7 +16,7 @@ import {
   WalletModalProvider,
 } from '@solana/wallet-adapter-react-ui';
 import Navbar from './Components/Navbar';
-import {  ToastContainer } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 
 const router = createBrowserRouter([
   { path: '/', element: <Home /> },
@@ -25,7 +25,7 @@ const router = createBrowserRouter([
 ]);
 
 const App = () => {
-  const network = WalletAdapterNetwork.Devnet;  
+  const network = WalletAdapterNetwork.Devnet;
 
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
@@ -33,15 +33,17 @@ const App = () => {
     () => [
       new PhantomWalletAdapter(),
     ],
-    [] 
+    []
   );
 
+  
+  // Matches /room/:id where :id is dynamic
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <ToastContainer/>
-          <Navbar  /> 
+          <ToastContainer />
+          <Navbar />
           <RouterProvider router={router} />
         </WalletModalProvider>
       </WalletProvider>
@@ -50,3 +52,8 @@ const App = () => {
 }
 
 export default App;
+
+
+// add if user already exist on room func
+//leave room mfunc
+//hide navbar
