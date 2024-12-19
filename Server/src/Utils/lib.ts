@@ -20,9 +20,36 @@ export const createAndUpdateRoom = async (data: RoomMemberData) => {
                 code: data.roomCode
             }
         })
-        if (!room) { 
-            
+        console.log(room, user);
+        let Message:string;
+        if (!room) {
+            const newRoom = await prisma.room.create({
+                data: {
+                    code: data.roomCode,
+                    members: {
+                        create: {
+                            userId: user.id
+                        }
+                    }
+                }
+            })
+            Message="Room Created Successfull"
+        } else { 
+            const updateRoom = await prisma.room.update({
+                where: {
+                    code:data.roomCode
+                },
+                data: {
+                    members: {
+                        create: {
+                            userId:user.id
+                        }
+                    }
+                }
+            })
+            Message="Room Joined succesfully"
         }
+        return Message
         
     } catch (error) {
         console.log(error);    

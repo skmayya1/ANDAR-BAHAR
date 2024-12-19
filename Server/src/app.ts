@@ -19,9 +19,9 @@ io.on("connection", (socket) => {
   socket.on("join-room", async (data) => {
     console.log("Joining Room", data);
     const { roomCode, solAddress, Name } = data;
-      const room = await createAndUpdateRoom(data);
+    const room = await createAndUpdateRoom(data);
         socket.join(data.roomCode);
-      socket.to(data.roomCode).emit("user-joined", data = {
+      io.to(data.roomCode).emit("user-joined", data = {
         Message:data.Name + " Joined the Room",
       });
     console.log("A user joined room", data.roomCode);
