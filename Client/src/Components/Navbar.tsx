@@ -25,18 +25,23 @@ const Navbar = () => {
     const handleConnect = async () => {
         try {
             setLoading(true);
-            Signinhandler({ solAddress: publicKey?.toBase58() || "" });
             const walletName = wallets[0]?.adapter.name;
             if (!walletName) return console.error('No wallet found');
-            select(walletName);
-            await connect();
+
+            select(walletName); // Select the wallet first
+            await connect(); // Wait for the connection to be established
         } catch (error) {
             console.error('Failed to connect wallet:', error);
-        }
-        finally { 
-            setLoading(false)
+        } finally {
+            setLoading(false);
         }
     };
+    useEffect(() => {
+        if (connected) {
+            Signinhandler({ solAddress: publicKey?.toBase58() });
+        }
+    }, [publicKey,connected])
+    
 
     const handleDisconnect = async () => {
         try {

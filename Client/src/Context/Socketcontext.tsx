@@ -8,23 +8,26 @@ interface SocketProviderProps {
 
 export interface SocketContexts {
     socket: Socket | null;
-    Signinhandler: (data: { solAddress: string }) => void;
+    Signinhandler: (data: { solAddress: string | undefined }) => void;
+    CreateRoom: (data: { Name: string, roomCode: string ,solAddress:string | undefined}) => void;
 }
 
 const SocketContext = createContext<SocketContexts | undefined>(undefined);
 
 export const SocketProvider = ({ children }: SocketProviderProps): ReactElement => {
     const [socket, setSocket] = useState<Socket | null>(null);
-    const Signinhandler = async (data: { solAddress: string }) => {
+    const Signinhandler = async (data: { solAddress: string  | undefined}) => {
         console.log(data.solAddress);
         socket?.emit("signin", { solAddress: data.solAddress });
     }
+    const CreateRoom = async (data: { Name: string, roomCode: string, solAddress: string | undefined }) => { 
+        socket?.emit("join-room", data);
+    };
 
     useEffect(() => {
         const newSocket = io('http://localhost:3000');
         setSocket(newSocket);
         newSocket.on("signin", (data) => {
-            console.log(data);
             toast.success(data.Message, {
                 position: "bottom-right",
                 autoClose: 5000,
@@ -38,8 +41,33 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
             });
         });
         newSocket.on("error", (error) => {
-            console.log(error);
             toast.error(error, {
+                position: "bottom-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+                transition: Bounce,
+            });
+        });
+        newSocket.on("user-joined", (data) => {
+            toast.success(data.Message, {
+                position: "bottom-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+                transition: Bounce,
+            });
+        });
+        newSocket.on("room-created", () => { 
+            toast.success("Room Created", {
                 position: "bottom-right",
                 autoClose: 5000,
                 hideProgressBar: false,
@@ -57,7 +85,7 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     }, []);
 
     return (
-        <SocketContext.Provider value={{ socket, Signinhandler }}>
+        <SocketContext.Provider value={{ socket, Signinhandler ,CreateRoom }}>
             {children}
         </SocketContext.Provider>
     );

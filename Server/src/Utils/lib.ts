@@ -3,44 +3,28 @@ const prisma = new PrismaClient();
 
 type RoomMemberData = {
     userId: string;
+    solAddress: string;
     roomCode: string;
 };
 
-export const createAndUpdateRoom = async ( data: RoomMemberData) => {
+export const createAndUpdateRoom = async (data: RoomMemberData) => {
+    console.log("Creating Room with Data:", data);
     try {
-        // Upsert Room and connect or create RoomMember
-        const room = await prisma.room.upsert({
+        const user = await prisma.user.findUnique({
+            where: {
+                solAddress: data.solAddress
+            }
+        })
+        const room = await prisma.room.findUnique({
             where: {
                 code: data.roomCode
-            },
-            create: {
-                code: data.roomCode,
-                members: {
-                    create: {
-                        userId: data.userId
-                    }
-                }
-            },
-            update: {
-                members: {
-                    connectOrCreate: {
-                        where: {
-                            userId_roomId: {
-                                userId: data.userId,
-                                roomId: undefined // this will be resolved dynamically
-                            }
-                        },
-                        create: {
-                            userId: data.userId
-                        }
-                    }
-                }
             }
-        });
-
-        return room;
+        })
+        if (!room) { 
+            
+        }
+        
     } catch (error) {
-        console.error('Error creating/updating room:', error);
-        throw new Error('Failed to create or update room');
+        console.log(error);    
     }
 };

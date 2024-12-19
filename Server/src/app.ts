@@ -16,15 +16,20 @@ io.on("connection", (socket) => {
     });
 
     //JOIN ROOM
-    socket.on("join-room", async (data) => {
-        const room = await createAndUpdateRoom(data);
+  socket.on("join-room", async (data) => {
+    console.log("Joining Room", data);
+    const { roomCode, solAddress, Name } = data;
+      const room = await createAndUpdateRoom(data);
         socket.join(data.roomCode);
-        socket.to(data.roomCode).emit("user-joined", socket.id);
-        console.log("A user joined room", data.roomCode);
+      socket.to(data.roomCode).emit("user-joined", data = {
+        Message:data.Name + " Joined the Room",
+      });
+    console.log("A user joined room", data.roomCode);
     });
   socket.on("signin", async (data) => { 
     const { solAddress } = data;
     console.log(solAddress);
+    console.log(data);
     
     try {
       const user = await Prisma.user.findUnique({
@@ -52,6 +57,7 @@ io.on("connection", (socket) => {
       console.log(error);
     }
   });
+
 });
 
 httpServer.listen(port, () => {

@@ -1,4 +1,8 @@
+import { useWallet } from "@solana/wallet-adapter-react";
 import { useState } from "react"
+import { Bounce, toast } from "react-toastify";
+import { useSocket } from "../Hooks/Socket";
+import { useNavigate } from "react-router-dom";
 
 export interface JoinProps {
   roomID: string;
@@ -6,34 +10,41 @@ export interface JoinProps {
 }
 
 const Join = () => {
+  const {connected,publicKey} = useWallet();
   const [formData, setFormData] = useState<JoinProps>({
     roomID: "",
     username: ""
   })
-
+  const { CreateRoom } = useSocket();
+  const router = useNavigate();
+ 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     })
   }
-
-  const handleJoin = () => {
-    if (!formData.roomID || !formData.username) {
-      alert("Please fill out both fields.");
-      return;
-    }
-    console.log("Joining Room with Data:", formData);
-    // Add logic to join a room (e.g., via WebSocket or API call)
-  }
-
   const handleCreate = () => {
+    if (!connected) {
+      return toast.error("Connect your wallet", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Bounce,
+      });
+    }
     if (!formData.username) {
       alert("Please enter a username to create a room.");
       return;
     }
     console.log("Creating a Room with Data:", formData);
-    // Add logic to create a new room (e.g., call an API to create a room)
+    CreateRoom({ Name: formData.username, roomCode: formData.roomID, solAddress: publicKey?.toBase58() });
+    router(`/room/${formData.roomID}`);
   }
 
   return (
@@ -47,6 +58,7 @@ const Join = () => {
             name="roomID"
             value={formData.roomID}
             onChange={handleChange}
+            maxLength={4}
             placeholder="Room ID"
             className="w-full p-2 rounded-lg bg-zinc-700 text-white outline-none font-mono"
           />
@@ -64,11 +76,6 @@ const Join = () => {
         </div>
 
         <div className="mt-4">
-          <button
-            onClick={handleJoin}
-            className="w-full p-2 rounded-lg mb-1 hover:border-zinc-300 border-transparent transition-all ease-in-out duration-300 border-b border-l shadow shadow-zinc-400  text-white   font-mono">
-            Join
-          </button>
           <button
             onClick={handleCreate}
             className="w-full p-2 rounded-lg mt-1 text-white hover:border-zinc-300 border-transparent transition-all ease-in-out duration-300 border-b border-l shadow shadow-zinc-400  font-mono">
