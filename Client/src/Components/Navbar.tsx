@@ -3,15 +3,14 @@ import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { PiSignOutFill } from "react-icons/pi";
 import LoadingSpinner from './LoadingSpinner';
 import { useEffect, useState } from 'react';
+import { useSocket } from '../Hooks/Socket';
 
 const Navbar = () => {
     const { connect, connected, connecting, disconnect, disconnecting, wallets, select, publicKey } = useWallet();
     const { connection } = useConnection();
     const [balance, setBalance] = useState<string | null>(null);
-
-    useEffect(() => {
-        wallets.forEach((wallet) => console.log(wallet.adapter));
-    }, [wallets]);
+    const [Loading, setLoading] = useState<boolean>(false)
+    const {Signinhandler } = useSocket()
 
     useEffect(() => {
         const fetchBalance = async () => {
@@ -25,12 +24,17 @@ const Navbar = () => {
 
     const handleConnect = async () => {
         try {
+            setLoading(true);
+            Signinhandler({ solAddress: publicKey?.toBase58() || "" });
             const walletName = wallets[0]?.adapter.name;
             if (!walletName) return console.error('No wallet found');
             select(walletName);
             await connect();
         } catch (error) {
             console.error('Failed to connect wallet:', error);
+        }
+        finally { 
+            setLoading(false)
         }
     };
 
@@ -51,7 +55,7 @@ const Navbar = () => {
                 </div>
             )}
             <div className="h-10 w-40 p-2 border border-zinc-700 text-zinc-300 rounded-lg text-center">
-                {connecting ? (
+                {connecting || Loading ? (
                     <LoadingSpinner  />
                 ) : !connected ? (
                     <button className='' onClick={handleConnect} disabled={connecting}>

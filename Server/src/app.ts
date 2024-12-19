@@ -22,31 +22,42 @@ io.on("connection", (socket) => {
         socket.to(data.roomCode).emit("user-joined", socket.id);
         console.log("A user joined room", data.roomCode);
     });
+  socket.on("signin", async (data) => { 
+    const { solAddress } = data;
+    console.log(solAddress);
+    
+    try {
+      const user = await Prisma.user.findUnique({
+        where: {
+          solAddress
+        }
+      });
+      let Message: string;
+      let status : number;
+      if (user) {
+        Message = "Login Successfull";
+        status = 200;
+      } else {
+        const newUser = await Prisma.user.create({
+          data: {
+            solAddress
+          }
+        })
+        Message = "User Signup Successfull";
+        status = 201;
+      }
+     socket.emit("signin", { Message, status });
+    } catch (error) {
+      socket.emit("error", {Message:"Error Occured",status:500});
+      console.log(error);
+    }
+  });
 });
 
 httpServer.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
-app.post('/signin', async (req, res) => {
-  const { solAddress } = req.body;
-  try {
-    const user = await Prisma.user.findUnique({
-      where: {
-        solAddress
-      }
-    });
-    if (user) res.send({ message: "User Exists , Login Succesfull", status: 200 });
-    const newUser = await Prisma.user.create({
-      data: {
-        solAddress
-      }
-    })
-    res.send({ message: "User Created", status: 200  });
-  } catch (error) {
-    res.status(400).send({ message: error.message });
-    console.log(error);
-  }
-})
+
 //SOCKET CONNECTION EMITS :
 /*
   user-joined : When a user Joins a Room.

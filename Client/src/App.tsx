@@ -16,6 +16,7 @@ import {
   WalletModalProvider,
 } from '@solana/wallet-adapter-react-ui';
 import Navbar from './Components/Navbar';
+import {  ToastContainer } from 'react-toastify';
 
 const router = createBrowserRouter([
   { path: '/', element: <Home /> },
@@ -39,6 +40,7 @@ const App = () => {
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
+          <ToastContainer/>
           <Navbar  /> 
           <RouterProvider router={router} />
         </WalletModalProvider>
