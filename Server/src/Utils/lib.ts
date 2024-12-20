@@ -102,7 +102,7 @@ export const leaveRoom = async (data: RoomMemberData) => {
                 }
             }
         });
-
+        await deleteRoomIfNoMembers(room.id);
         return { message: roomMember.name + ' left the room.' };
     } catch (error) {
         console.error('Error in leaveRoom:', error);
@@ -134,3 +134,38 @@ export const getRoomMembers = async (roomCode: string) => {
         return [];
     }
 }
+
+async function deleteRoomIfNoMembers(roomId:string) {
+    try {
+        const room = await Prisma.room.findUnique({
+            where: { id: roomId },
+        });
+
+        if (!room) {
+            console.log(`Room with id ${roomId} does not exist.`);
+            return;
+        }
+
+        // Count the number of members in the room
+        const memberCount = await Prisma.roomMember.count({
+            where: { roomId },
+        });
+
+        // If no members are found, delete the room
+        if (memberCount === 0) {
+            await Prisma.room.delete({
+                where: { id: roomId },
+            });
+            console.log(`Room with id ${roomId} has been deleted because it had no members.`);
+        } else {
+            console.log(`Room with id ${roomId} still has ${memberCount} member(s), so it was not deleted.`);
+        }
+    } catch (error) {
+        console.error('Error deleting room:', error);
+    } finally {
+        await Prisma.$disconnect();
+    }
+}
+
+// Call the function
+deleteRoomIfNoMembers('cm4vhl9510003piz4bnyjv05l'); // Replace this with the actual room ID
