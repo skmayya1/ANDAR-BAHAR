@@ -35,9 +35,6 @@ const App = () => {
     ],
     []
   );
-
-  
-  // Matches /room/:id where :id is dynamic
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>

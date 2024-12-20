@@ -57,6 +57,9 @@ io.on("connection", (socket) => {
       console.log(error);
     }
   });
+  socket.on("leave-room", async (data) => {
+   
+  });
 
 });
 

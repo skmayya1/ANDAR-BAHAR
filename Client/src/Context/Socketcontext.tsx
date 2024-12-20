@@ -9,7 +9,8 @@ interface SocketProviderProps {
 export interface SocketContexts {
     socket: Socket | null;
     Signinhandler: (data: { solAddress: string | undefined }) => void;
-    CreateRoom: (data: { Name: string, roomCode: string ,solAddress:string | undefined}) => void;
+    CreateRoom: (data: { Name: string, roomCode: string, solAddress: string | undefined }) => void;
+    LeaveRoom: (data: { Name: string, roomCode: string, solAddress: string | undefined }) => void;
 }
 
 const SocketContext = createContext<SocketContexts | undefined>(undefined);
@@ -23,6 +24,9 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     const CreateRoom = async (data: { Name: string, roomCode: string, solAddress: string | undefined }) => { 
         socket?.emit("join-room", data);
     };
+    const LeaveRoom = async (data: { Name: string, roomCode: string, solAddress: string | undefined }) => { 
+        socket?.emit("leave-room", data);
+    }
 
     useEffect(() => {
         const newSocket = io('http://localhost:3000');
@@ -85,7 +89,7 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     }, []);
 
     return (
-        <SocketContext.Provider value={{ socket, Signinhandler ,CreateRoom }}>
+        <SocketContext.Provider value={{ socket, Signinhandler ,CreateRoom,LeaveRoom}}>
             {children}
         </SocketContext.Provider>
     );
