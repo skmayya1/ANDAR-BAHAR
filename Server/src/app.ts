@@ -17,17 +17,49 @@ io.on("connection", (socket) => {
 
     //JOIN ROOM
   socket.on("join-room", async (data) => {
-    console.log("Joining Room", data);
-    const { roomCode, solAddress, Name } = data;
-    const room = await createAndUpdateRoom(data);
-    const members = await getRoomMembers(data.roomCode);
-        socket.join(data.roomCode);
-      socket.to(data.roomCode).emit("user-joined", data = {
-        Message:data.Name + " Joined the Room",
+    try {
+      console.log("Joining Room", data);
+
+      // Destructure with default values
+      const { roomCode = '', solAddress = '', Name = 'Guest' } = data;
+
+      // Check if required data is present
+      if (!roomCode) {
+        console.error("Room code is required to join the room.");
+        return;
+      }
+
+      // Create or update the room
+      const room = await createAndUpdateRoom(data);
+      if (!room) {
+        console.error("Failed to create or update room.");
+        return;
+      }
+
+      // Get the updated list of members in the room
+      const members = await getRoomMembers(roomCode);
+      if (!members) {
+        console.error("Failed to fetch room members.");
+        return;
+      }
+
+      // Join the socket room
+      socket.join(roomCode);
+      console.log("A user joined room", roomCode);
+
+      // Notify others in the room
+      socket.to(roomCode).emit("user-joined", {
+        Message: `${Name} joined the room`,
       });
-      io.to(data.roomCode).emit("room-members", members);
-    console.log("A user joined room", data.roomCode);
-    });
+
+      // Send the updated members list to everyone in the room
+      io.to(roomCode).emit("room-members", members);
+
+    } catch (error) {
+      console.error("Error joining room:", error);
+    }
+  });
+
   socket.on("signin", async (data) => { 
     const { solAddress } = data;
     console.log(solAddress);
@@ -60,12 +92,49 @@ io.on("connection", (socket) => {
     }
   });
   socket.on("leave-room", async (data) => {
-    const user = await leaveRoom(data);
-    console.log(user);
+    try {
+      // Destructure with default values to prevent undefined access
+      const { roomCode = '', solAddress = '', Name = 'Guest' } = data;
 
-    socket.leave(data.roomCode);
-    socket.to(data.roomCode).emit("leave-room", user);
+      // Check if required data is present
+      if (!roomCode) {
+        console.error("Room code is required to leave the room.");
+        return;
+      }
+
+      // Remove user from the room
+      const user = await leaveRoom(data);
+      if (!user) {
+        console.error("Failed to remove user from the room.");
+        return;
+      }
+
+      console.log(`${Name} has left the room: ${roomCode}`);
+
+      // Leave the socket room
+      socket.leave(roomCode);
+
+      // Notify other users in the room about the user who left
+      socket.to(roomCode).emit("leave-room", {
+        Message: `${Name} has left the room`,
+        user,
+      });
+      
+      // Get the updated list of members in the room
+      const members = await getRoomMembers(roomCode);
+      if (!members) {
+        console.error("Failed to fetch room members.");
+        return;
+      }
+
+      // Notify all users in the room about the updated members list
+      io.to(roomCode).emit("room-members", members);
+
+    } catch (error) {
+      console.error("Error handling leave-room event:", error);
+    }
   });
+
 
 });
 

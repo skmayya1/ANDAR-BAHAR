@@ -21,6 +21,7 @@ model Room {
   members    RoomMember[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  rounds     Int  @default(0)
 }
 
 model RoomMember {
@@ -28,6 +29,8 @@ model RoomMember {
   roomId    String
   userId    String
   name      String?
+  wins      Int      @default(0)
+  SelectedCard String?
   room      Room     @relation(fields: [roomId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())

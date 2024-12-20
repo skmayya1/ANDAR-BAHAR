@@ -125,8 +125,8 @@ export const getRoomMembers = async (roomCode: string) => {
                 }
             }
         });
-        if (!room) {
-            throw new Error('Room not found');
+        if (!room.members) {
+            return [];
         }
         return room.members;
     } catch (error) {

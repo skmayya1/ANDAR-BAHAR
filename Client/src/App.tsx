@@ -50,7 +50,3 @@ const App = () => {
 
 export default App;
 
-
-// add if user already exist on room func
-//leave room mfunc
-//hide navbar

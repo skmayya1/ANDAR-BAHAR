@@ -11,14 +11,25 @@ export interface SocketContexts {
     Signinhandler: (data: { solAddress: string | undefined }) => void;
     CreateRoom: (data: { Name: string, roomCode: string, solAddress: string | undefined }) => void;
     LeaveRoom: (data: { Name: string, roomCode: string, solAddress: string | undefined }) => void;
+    Data: Datatype[] | null;
+}
+ interface Datatype { 
+    name: string;
+    roomId: string
+    user:User
+    
+}
+interface User{
+    id: string;
+    solAddress: string;
 }
 
 const SocketContext = createContext<SocketContexts | undefined>(undefined);
 
 export const SocketProvider = ({ children }: SocketProviderProps): ReactElement => {
     const [socket, setSocket] = useState<Socket | null>(null);
+    const [Data, setData] = useState<Datatype[]|null>(null);
     const Signinhandler = async (data: { solAddress: string  | undefined}) => {
-        console.log(data.solAddress);
         socket?.emit("signin", { solAddress: data.solAddress });
     }
     const CreateRoom = async (data: { Name: string, roomCode: string, solAddress: string | undefined }) => { 
@@ -83,8 +94,8 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
                 transition: Bounce,
             });
         });
-        newSocket.on("room-members", (data) => {
-            console.log(data);
+        newSocket.on("room-members", (members) => {
+            setData(members);
         });
         newSocket.on("leave-room", (data) => {
             toast.error(data.message, {
@@ -105,7 +116,7 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     }, []);
 
     return (
-        <SocketContext.Provider value={{ socket, Signinhandler ,CreateRoom,LeaveRoom}}>
+        <SocketContext.Provider value={{ socket, Signinhandler ,CreateRoom,LeaveRoom ,Data}}>
             {children}
         </SocketContext.Provider>
     );
