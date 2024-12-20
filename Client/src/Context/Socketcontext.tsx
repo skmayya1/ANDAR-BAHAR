@@ -83,6 +83,22 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
                 transition: Bounce,
             });
         });
+        newSocket.on("room-members", (data) => {
+            console.log(data);
+        });
+        newSocket.on("leave-room", (data) => {
+            toast.error(data.message, {
+                position: "bottom-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+                transition: Bounce,
+            });
+         });
         return () => {
             newSocket.disconnect();
         };

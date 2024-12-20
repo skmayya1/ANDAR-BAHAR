@@ -27,6 +27,7 @@ model RoomMember {
   id        String   @id @default(cuid())
   roomId    String
   userId    String
+  name      String?
   room      Room     @relation(fields: [roomId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())

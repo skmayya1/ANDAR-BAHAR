@@ -1,7 +1,7 @@
 import express from 'express';
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { createAndUpdateRoom } from './Utils/lib';
+import { createAndUpdateRoom, getRoomMembers, leaveRoom } from './Utils/lib';
 import Prisma from './Utils/Prisma';
 const app = express();
 const httpServer = createServer(app);
@@ -20,10 +20,12 @@ io.on("connection", (socket) => {
     console.log("Joining Room", data);
     const { roomCode, solAddress, Name } = data;
     const room = await createAndUpdateRoom(data);
+    const members = await getRoomMembers(data.roomCode);
         socket.join(data.roomCode);
-      io.to(data.roomCode).emit("user-joined", data = {
+      socket.to(data.roomCode).emit("user-joined", data = {
         Message:data.Name + " Joined the Room",
       });
+      io.to(data.roomCode).emit("room-members", members);
     console.log("A user joined room", data.roomCode);
     });
   socket.on("signin", async (data) => { 
@@ -58,7 +60,11 @@ io.on("connection", (socket) => {
     }
   });
   socket.on("leave-room", async (data) => {
-   
+    const user = await leaveRoom(data);
+    console.log(user);
+
+    socket.leave(data.roomCode);
+    socket.to(data.roomCode).emit("leave-room", user);
   });
 
 });

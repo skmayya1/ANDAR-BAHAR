@@ -1,10 +1,10 @@
-import { PrismaClient } from '@prisma/client';
 import Prisma from './Prisma';
 
 type RoomMemberData = {
     userId: string;
     solAddress: string;
     roomCode: string;
+    Name: string;
 };
 
 export const createAndUpdateRoom = async (data: RoomMemberData) => {
@@ -28,7 +28,8 @@ export const createAndUpdateRoom = async (data: RoomMemberData) => {
                     code: data.roomCode,
                     members: {
                         create: {
-                            userId: user.id
+                            userId: user.id,
+                            name: data.Name
                         }
                     }
                 }
@@ -39,7 +40,7 @@ export const createAndUpdateRoom = async (data: RoomMemberData) => {
                 where: {
                     userId_roomId: {
                         userId: user.id,
-                        roomId: room.id
+                        roomId: room.id,
                     }
                 }
             })
@@ -51,7 +52,8 @@ export const createAndUpdateRoom = async (data: RoomMemberData) => {
                     data: {
                         members: {
                             create: {
-                                userId: user.id
+                                userId: user.id,
+                                name: data.Name
                             }
                         }
                     }
@@ -67,6 +69,8 @@ export const createAndUpdateRoom = async (data: RoomMemberData) => {
 
 export const leaveRoom = async (data: RoomMemberData) => {
     try {
+        console.log("Leaving Room with Data:", data);
+        
         const user = await Prisma.user.findUnique({ where: { solAddress: data.solAddress } });
         if (!user) {
             throw new Error('User not found');
@@ -99,10 +103,34 @@ export const leaveRoom = async (data: RoomMemberData) => {
             }
         });
 
-        return { message: 'Left the room successfully.' };
+        return { message: roomMember.name + ' left the room.' };
     } catch (error) {
         console.error('Error in leaveRoom:', error);
         return { error: 'An error occurred while leaving the room.' };
     }
 };
-
+export const getRoomMembers = async (roomCode: string) => { 
+    try {
+        const room = await Prisma.room.findUnique({
+            where: {
+                code: roomCode
+            },
+            include: {
+                members: {
+                    select: {
+                        user: true,
+                        name: true,
+                        roomId: true
+                    }
+                }
+            }
+        });
+        if (!room) {
+            throw new Error('Room not found');
+        }
+        return room.members;
+    } catch (error) {
+        console.error('Error in getRoomMembers:', error);
+        return [];
+    }
+}
