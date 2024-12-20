@@ -53,7 +53,7 @@ const Navbar = () => {
     };
 
     return (
-        <div className="absolute flex items-center w-full justify-end px-20 py-6 gap-2">
+        <div className="absolute flex items-center w-full justify-end px-20 pt-6 pb-2 border-zinc-700 gap-2 border-b">
             {connected && (
                 <div className="h-10 w-fit px-5 border border-zinc-700 rounded-lg text-zinc-400 font-semibold font-mono flex items-center justify-center text-sm">
                     <p>{balance} SOL</p>

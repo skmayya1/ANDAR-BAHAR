@@ -11,7 +11,7 @@ import { GiPodiumWinner } from "react-icons/gi";
 const Room = () => {
   const [memberCount, setmemberCount] = useState<number | undefined>(undefined)
   const [roomID, setroomID] = useState('')
-  const { LeaveRoom ,Data } = useSocket();
+  const { LeaveRoom ,Data ,GetRoomData} = useSocket();
   const { publicKey } = useWallet();
   const router = useNavigate();
   const LeaveHabndler = () => { 
@@ -20,7 +20,9 @@ const Room = () => {
   }
   useEffect(() => { 
     setroomID(window.location.pathname.split("/")[2]);
-  }, [])
+    GetRoomData({ roomCode: window.location.pathname.split("/")[2] });
+  }, [GetRoomData])
+  
   useEffect(() => {
     console.log(Data);
     setmemberCount(Data?.length);

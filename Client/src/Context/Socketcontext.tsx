@@ -12,12 +12,12 @@ export interface SocketContexts {
     CreateRoom: (data: { Name: string, roomCode: string, solAddress: string | undefined }) => void;
     LeaveRoom: (data: { Name: string, roomCode: string, solAddress: string | undefined }) => void;
     Data: Datatype[] | null;
+    GetRoomData: (data: { roomCode: string }) => void;
 }
  interface Datatype { 
     name: string;
     roomId: string
     user:User
-    
 }
 interface User{
     id: string;
@@ -37,6 +37,9 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     };
     const LeaveRoom = async (data: { Name: string, roomCode: string, solAddress: string | undefined }) => { 
         socket?.emit("leave-room", data);
+    }
+    const GetRoomData = async (data: { roomCode: string }) => { 
+        socket?.emit("get-room-data", data);
     }
 
     useEffect(() => {
@@ -109,14 +112,17 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
                 theme: "dark",
                 transition: Bounce,
             });
-         });
+        });
+        newSocket.on("get-room-data", (data) => {
+            console.log(data);
+        });
         return () => {
             newSocket.disconnect();
         };
     }, []);
 
     return (
-        <SocketContext.Provider value={{ socket, Signinhandler ,CreateRoom,LeaveRoom ,Data}}>
+        <SocketContext.Provider value={{ socket, Signinhandler ,CreateRoom,LeaveRoom ,Data,GetRoomData}}>
             {children}
         </SocketContext.Provider>
     );

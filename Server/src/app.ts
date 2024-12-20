@@ -1,7 +1,7 @@
 import express from 'express';
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { createAndUpdateRoom, getRoomMembers, leaveRoom } from './Utils/lib';
+import { createAndUpdateRoom, getRoomdetails, getRoomMembers, leaveRoom } from './Utils/lib';
 import Prisma from './Utils/Prisma';
 const app = express();
 const httpServer = createServer(app);
@@ -15,7 +15,6 @@ io.on("connection", (socket) => {
         console.log("A user disconnected");
     });
 
-    //JOIN ROOM
   socket.on("join-room", async (data) => {
     try {
       console.log("Joining Room", data);
@@ -134,7 +133,12 @@ io.on("connection", (socket) => {
       console.error("Error handling leave-room event:", error);
     }
   });
-
+  socket.on("get-room-data", async (data) => {
+    console.log("Getting Room Data", data);
+    const Roomdata = await getRoomdetails(data.roomCode);
+    console.log("Room",Roomdata);
+    socket.emit("get-room-data",Roomdata);
+  });
 
 });
 

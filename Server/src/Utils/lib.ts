@@ -167,5 +167,20 @@ async function deleteRoomIfNoMembers(roomId:string) {
     }
 }
 
-// Call the function
-deleteRoomIfNoMembers('cm4vhl9510003piz4bnyjv05l'); // Replace this with the actual room ID
+export const getRoomdetails = async (roomcode: string) => { 
+    try {
+        const room = await Prisma.room.findUnique({
+            where: {
+                code: roomcode
+            },
+            select: {
+                members: true,
+                rounds: true,
+        }
+        });
+        return room;
+    } catch (error) {
+        console.error('Error in getRoomdetails:', error);
+        return undefined;
+    }
+}
