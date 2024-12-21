@@ -17,6 +17,7 @@ export interface SocketContexts {
     CardData: CardsData | undefined;
     Ready: boolean;
     setReady: React.Dispatch<React.SetStateAction<boolean>>;
+    MagicCard: (data: { roomCode: string |undefined }) => void;
 }
 
 interface Datatype {
@@ -36,6 +37,10 @@ interface User {
 interface RoomData {
     members: RoomMember[];
     rounds: number;
+    currentMagicCard: string,
+    currentRound: number,
+    pool: number,
+    RoundStarted: boolean
 }
 
 interface RoomMember {
@@ -73,6 +78,9 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     const GetRoomData = async (data: { roomCode: string }) => {
         socket?.emit("get-room-data", data);
     };
+    const MagicCard = async (data: { roomCode: string | undefined }) => { 
+        socket?.emit("select-magic-card", data);
+    }
 
     useEffect(() => {
         const newSocket = io('http://localhost:3000');
@@ -165,7 +173,7 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     }, []);
 
     return (
-        <SocketContext.Provider value={{ socket, Signinhandler, CreateRoom, LeaveRoom, Data, GetRoomData, RoomData, CardData ,Ready ,setReady}}>
+        <SocketContext.Provider value={{ socket, Signinhandler, CreateRoom, LeaveRoom, Data, GetRoomData, RoomData, CardData ,Ready ,setReady ,MagicCard}}>
             {children}
         </SocketContext.Provider>
     );

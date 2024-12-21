@@ -179,6 +179,10 @@ export const getRoomdetails = async (roomcode: string) => {
             select: {
                 members: true,
                 rounds: true,
+                currentMagicCard: true,
+                currentRound: true,
+                pool: true,
+                RoundStarted:true
         }
         });
         return room;
@@ -186,4 +190,22 @@ export const getRoomdetails = async (roomcode: string) => {
         console.error('Error in getRoomdetails:', error);
         return undefined;
     }
+}
+export function selectRandomCard():string {
+    const cards = [
+        "2D", "2S", "2H", "2C",
+        "3D", "3S", "3H", "3C",
+        "4D", "4S", "4H", "4C",
+        "5D", "5S", "5H", "5C",
+        "6D", "6S", "6H", "6C",
+        "7D", "7S", "7H", "7C",
+        "8D", "8S", "8H", "8C",
+        "9D", "9S", "9H", "9C",
+        "JD", "JS", "JH", "JC",
+        "QD", "QS", "QH", "QC",
+        "KD", "KS", "KH", "KC",
+        "AD", "AS", "AH", "AC"
+    ];
+    const randomIndex = Math.floor(Math.random() * cards.length);
+    return cards[randomIndex];
 }

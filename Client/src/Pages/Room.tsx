@@ -9,37 +9,12 @@ import Navbar from "../Components/Room/Navbar";
 const Room = () => {
   const [memberCount, setMemberCount] = useState<number | undefined>(undefined);
   const { id } = useParams();
-  const { LeaveRoom, GetRoomData, RoomData, CardData  ,Ready ,setReady} = useSocket();
+  const { LeaveRoom, GetRoomData, RoomData, Ready, setReady, MagicCard } = useSocket();
   const { publicKey } = useWallet();
   const router = useNavigate();
+
   const [betAmount, setBetAmount] = useState<number | undefined>(undefined);
-  setReady(true);
-  useEffect(() => {
-    if (GetRoomData && id) {
-      GetRoomData({ roomCode: id });
-    }
-  }, [id,Ready]);
-
-  const fetchData = async () => {
-    if (GetRoomData && id) {
-      GetRoomData({ roomCode: id });
-    }
-  };
-
-  useEffect(() => {
-    if (RoomData?.members ?.length !== memberCount) {
-      setMemberCount(RoomData?.members?.length);
-      fetchData();
-    }
-  }, [RoomData?.members?.length, memberCount]);
-  
-
-  const LeaveHandler = () => {
-    if (id && publicKey) {
-      LeaveRoom({ Name: "User", roomCode: id, solAddress: publicKey.toBase58() });
-      router("/");
-    }
-  };
+  const [betOption, setBetOption] = useState<string | undefined>("");
 
   const handleBetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = Number(e.target.value);
@@ -52,8 +27,32 @@ const Room = () => {
   };
 
   const placeBet = () => {
-    if (betAmount && betAmount >= 1 && betAmount <= 999) {
-      console.log("Bet placed: ", betAmount);
+    if (betAmount && betAmount >= 1 && betAmount <= 999 && betOption) {
+      console.log(`Bet placed: ${betAmount} on ${betOption}`);
+    } else {
+      console.log("Please enter a valid bet amount and select a bet option.");
+    }
+  };
+
+  setReady(true);
+
+  useEffect(() => {
+    if (GetRoomData && id) {
+      GetRoomData({ roomCode: id });
+      MagicCard({ roomCode: id });
+    }
+  }, [id, Ready]);
+
+  useEffect(() => {
+    if (RoomData?.members?.length !== memberCount) {
+      setMemberCount(RoomData?.members?.length);
+    }
+  }, [RoomData?.members?.length, memberCount]);
+
+  const LeaveHandler = () => {
+    if (id && publicKey) {
+      LeaveRoom({ Name: "User", roomCode: id, solAddress: publicKey.toBase58() });
+      router("/");
     }
   };
 
@@ -81,8 +80,9 @@ const Room = () => {
           <div className="border border-zinc-700 rounded-lg p-5 flex w-[30vh] flex-col gap-2 h-[20vh] text-zinc-200">
             <h1 className="font-semibold">Current Round: {RoomData?.rounds}</h1>
           </div>
-          <div className="border border-zinc-700 rounded-lg p-5 flex w-[30vh] flex-col gap-2 h-[20vh] text-zinc-200">
+          <div className="border border-zinc-700 rounded-lg p-5 flex w-[30vh] flex-col gap-2 h-[25vh] text-zinc-200">
             <h1 className="font-semibold">Place Bet:</h1>
+
             <input
               className="border border-zinc-700 rounded-lg p-2 w-full bg-transparent text-zinc-200 outline-none"
               type="number"
@@ -92,8 +92,24 @@ const Room = () => {
               max="999"
               onChange={handleBetChange}
             />
+
+            <div className="flex gap-2 mt-3">
+              <button
+                className={`p-2 border border-zinc-700  text-zinc-200 font-semibold rounded-lg w-full ${betOption === "Andhar" ? "bg-zinc-700 border-green-600" : ""}`}
+                onClick={() => setBetOption("Andhar")}
+              >
+                Andhar
+              </button>
+              <button
+                className={`p-2 border border-zinc-700  text-zinc-200 font-semibold rounded-lg w-full ${betOption === "Bahar" ? "bg-zinc-700 border-green-600" : ""}`}
+                onClick={() => setBetOption("Bahar")}
+              >
+                Bahar
+              </button>
+            </div>
+
             <button
-              className="bg-green-400 p-2 text-zinc-800 font-semibold rounded-lg"
+              className="bg-green-400 p-2 text-zinc-800 font-semibold rounded-lg mt-3"
               onClick={placeBet}
             >
               Bet
@@ -111,10 +127,10 @@ const Room = () => {
             <h1>Andar</h1>
           </div>
           <div className="text-zinc-200 font-semibold font-mono text-center items-center flex justify-center flex-col gap-1 border-4 border-zinc-600 rounded-3xl mb-8 h-[310px] w-[200px]">
-            {CardData?.CurrCard ? (
-              <img src={"/" + CardData.CurrCard + ".svg"} alt="Card SVG" width="200px" height="300px" />
+            {RoomData?.currentMagicCard ? (
+              <img src={"/" + RoomData?.currentMagicCard + ".svg"} alt="Card SVG" width="200px" height="300px" />
             ) : (
-              <h1>Waiting for Cards</h1>
+              <h1>Magic Card</h1>
             )}
           </div>
         </div>

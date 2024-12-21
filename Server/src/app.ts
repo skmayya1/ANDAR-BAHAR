@@ -1,7 +1,7 @@
 import express from 'express';
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { createAndUpdateRoom, getRoomdetails, getRoomMembers, leaveRoom } from './Utils/lib';
+import { createAndUpdateRoom, getRoomdetails, getRoomMembers, leaveRoom, selectRandomCard } from './Utils/lib';
 import Prisma from './Utils/Prisma';
 
 const app = express();
@@ -15,6 +15,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("A user disconnected", socket.id);
   });
+
 
   socket.on("join-room", async (data) => {
     try {
@@ -111,8 +112,31 @@ io.on("connection", (socket) => {
       console.error("Error in get-room-data:", error);
     }
   });
+  socket.on("select-magic-card", async (data) => {
+    const { roomCode } = data;
+    console.log("Select Magic Card Request Received:", data);
+    try {
+      let MagicCard;
+       MagicCard = await Prisma.room.findUnique({ where: { code: roomCode }, select: { currentMagicCard: true } });
+      if (!MagicCard.currentMagicCard) {
+        MagicCard = selectRandomCard();
+        console.log("Magic Card Selected:", MagicCard);
+        const room = await Prisma.room.update({ where: { code: roomCode }, data: { currentMagicCard: MagicCard } });
+      }
+      const Roomdata = await getRoomdetails(roomCode);
+      console.log("Room Data Fetched Successfully:", Roomdata);
+      io.to(roomCode).emit("get-room-data", Roomdata);
+    } catch (error) {
+      console.log(error);
+      
+    }
+  })
 });
 
 httpServer.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+
+//Card select Magic card and Distribution
+//Place a bet
+//Evveryoine betted start the round
