@@ -120,7 +120,10 @@ export const getRoomMembers = async (roomCode: string) => {
                     select: {
                         user: true,
                         name: true,
-                        roomId: true
+                        roomId: true,
+                        wins: true,
+                        betQty: true,
+                        bettedOn: true,
                     }
                 }
             }

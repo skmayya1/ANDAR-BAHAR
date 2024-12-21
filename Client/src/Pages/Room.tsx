@@ -1,34 +1,38 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useState, useEffect } from "react";
+import { GiPodiumWinner } from "react-icons/gi";
+import { useNavigate, useParams } from "react-router-dom";
 import { useSocket } from "../Hooks/Socket";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../Components/Room/Navbar";
-import {  useEffect, useState } from "react";
-import { GiPodiumWinner } from "react-icons/gi";
 
 const Room = () => {
   const [memberCount, setMemberCount] = useState<number | undefined>(undefined);
   const { id } = useParams();
-  const { LeaveRoom, GetRoomData, RoomData } = useSocket();
+  const { LeaveRoom, GetRoomData, RoomData, CardData  ,Ready ,setReady} = useSocket();
   const { publicKey } = useWallet();
   const router = useNavigate();
-  
-  useEffect(() => { 
-    if (GetRoomData && id) {
-      GetRoomData({ roomCode: id });
-    }  
-  }, [id])
-  const fetchData = async () => { 
+  const [betAmount, setBetAmount] = useState<number | undefined>(undefined);
+  setReady(true);
+  useEffect(() => {
     if (GetRoomData && id) {
       GetRoomData({ roomCode: id });
     }
-  }
+  }, [id,Ready]);
+
+  const fetchData = async () => {
+    if (GetRoomData && id) {
+      GetRoomData({ roomCode: id });
+    }
+  };
 
   useEffect(() => {
-    if (RoomData?.members?.length !== memberCount) {
-      setMemberCount(RoomData?.members.length);
-      fetchData(); 
+    if (RoomData?.members ?.length !== memberCount) {
+      setMemberCount(RoomData?.members?.length);
+      fetchData();
     }
   }, [RoomData?.members?.length, memberCount]);
+  
 
   const LeaveHandler = () => {
     if (id && publicKey) {
@@ -37,22 +41,22 @@ const Room = () => {
     }
   };
 
-  const cards = [
-    "2D", "2S", "2H", "2C",
-    "3D", "3S", "3H", "3C",
-    "4D", "4S", "4H", "4C",
-    "5D", "5S", "5H", "5C",
-    "6D", "6S", "6H", "6C",
-    "7D", "7S", "7H", "7C",
-    "8D", "8S", "8H", "8C",
-    "9D", "9S", "9H", "9C",
-    "JD", "JS", "JH", "JC",
-    "QD", "QS", "QH", "QC",
-    "KD", "KS", "KH", "KC",
-    "AD", "AS", "AH", "AC"
-  ];
- console.log(cards);
- 
+  const handleBetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = Number(e.target.value);
+
+    if (inputValue >= 1 && inputValue <= 999) {
+      setBetAmount(inputValue);
+    } else if (e.target.value === "") {
+      setBetAmount(undefined);
+    }
+  };
+
+  const placeBet = () => {
+    if (betAmount && betAmount >= 1 && betAmount <= 999) {
+      console.log("Bet placed: ", betAmount);
+    }
+  };
+
   return (
     <div className="text-black bg-zinc-800 h-screen w-full font-mono">
       <Navbar LeaveHabndler={LeaveHandler} MemberCount={memberCount} />
@@ -77,6 +81,24 @@ const Room = () => {
           <div className="border border-zinc-700 rounded-lg p-5 flex w-[30vh] flex-col gap-2 h-[20vh] text-zinc-200">
             <h1 className="font-semibold">Current Round: {RoomData?.rounds}</h1>
           </div>
+          <div className="border border-zinc-700 rounded-lg p-5 flex w-[30vh] flex-col gap-2 h-[20vh] text-zinc-200">
+            <h1 className="font-semibold">Place Bet:</h1>
+            <input
+              className="border border-zinc-700 rounded-lg p-2 w-full bg-transparent text-zinc-200 outline-none"
+              type="number"
+              placeholder="1-999"
+              value={betAmount || ""}
+              min="1"
+              max="999"
+              onChange={handleBetChange}
+            />
+            <button
+              className="bg-green-400 p-2 text-zinc-800 font-semibold rounded-lg"
+              onClick={placeBet}
+            >
+              Bet
+            </button>
+          </div>
         </div>
         <div className="h-[20vw] flex items-center w-full px-20 gap-20">
           <div className="text-zinc-200 font-semibold font-mono text-center items-center flex justify-center flex-col gap-1 mb-8">
@@ -88,8 +110,12 @@ const Room = () => {
           <div className="text-zinc-200 font-semibold font-mono text-center items-center flex justify-center flex-col gap-1 h-[310px] w-[200px] border border-zinc-700 rounded-3xl">
             <h1>Andar</h1>
           </div>
-          <div className="text-zinc-200 font-semibold font-mono text-center items-center flex justify-center flex-col gap-1 border-4 border-zinc-600 rounded-3xl mb-8">
-            <img src="/3H.svg" alt="Card SVG" width="200px" height="300px" />
+          <div className="text-zinc-200 font-semibold font-mono text-center items-center flex justify-center flex-col gap-1 border-4 border-zinc-600 rounded-3xl mb-8 h-[310px] w-[200px]">
+            {CardData?.CurrCard ? (
+              <img src={"/" + CardData.CurrCard + ".svg"} alt="Card SVG" width="200px" height="300px" />
+            ) : (
+              <h1>Waiting for Cards</h1>
+            )}
           </div>
         </div>
       </div>

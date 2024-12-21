@@ -6,6 +6,7 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 model User {
   id         String   @id @default(cuid())
   solAddress String   @unique
@@ -22,8 +23,9 @@ model Room {
   updatedAt       DateTime @updatedAt
   rounds          Int      @default(0)
   currentMagicCard String? 
+  RoundStarted    Boolean  @default(false) 
   pool            Int      @default(0)
-  currentRound    Int      @default(0) // Lowercase field name
+  currentRound    Int      @default(0) 
 }
 
 model RoomMember {
@@ -32,8 +34,8 @@ model RoomMember {
   userId    String
   name      String?  
   wins      Int      @default(0)
-  bettedOn  Int?     // Changed to camelCase
-  betQty    Int?     // Changed to camelCase
+  bettedOn  Int?    
+  betQty    Int?    
   room      Room     @relation(fields: [roomId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())

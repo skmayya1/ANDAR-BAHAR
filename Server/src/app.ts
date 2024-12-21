@@ -3,159 +3,116 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { createAndUpdateRoom, getRoomdetails, getRoomMembers, leaveRoom } from './Utils/lib';
 import Prisma from './Utils/Prisma';
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: "*" } });
-const port =process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
 io.on("connection", (socket) => {
-    //INITIAL
-    console.log("A user connected",socket.id);
-    socket.on("disconnect", () => {
-        console.log("A user disconnected");
-    });
+  console.log("A user connected", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("A user disconnected", socket.id);
+  });
 
   socket.on("join-room", async (data) => {
     try {
-      console.log("Joining Room", data);
+      console.log("Joining Room Request Received:", data);
 
-      // Destructure with default values
       const { roomCode = '', solAddress = '', Name = 'Guest' } = data;
 
-      // Check if required data is present
       if (!roomCode) {
-        console.error("Room code is required to join the room.");
+        console.error("Room code is missing in join-room.");
         return;
       }
 
-      // Create or update the room
       const room = await createAndUpdateRoom(data);
       if (!room) {
         console.error("Failed to create or update room.");
         return;
       }
 
-      // Get the updated list of members in the room
-      const members = await getRoomMembers(roomCode);
-      if (!members) {
-        console.error("Failed to fetch room members.");
-        return;
-      }
+      const Roomdata = await getRoomdetails(roomCode);
+      console.log("Room Data Fetched Successfully:", Roomdata);
 
-      // Join the socket room
       socket.join(roomCode);
-      console.log("A user joined room", roomCode);
+      console.log(`User ${Name} joined room: ${roomCode}`);
 
-      // Notify others in the room
-      socket.to(roomCode).emit("user-joined", {
-        Message: `${Name} joined the room`,
-      });
-
-      // Send the updated members list to everyone in the room
-      io.to(roomCode).emit("room-members", members);
+      socket.to(roomCode).emit("user-joined", { Message: `${Name} joined the room` });
+      io.to(roomCode).emit("get-room-data", Roomdata);
 
     } catch (error) {
-      console.error("Error joining room:", error);
+      console.error("Error in join-room:", error);
     }
   });
 
-  socket.on("signin", async (data) => { 
+  socket.on("signin", async (data) => {
     const { solAddress } = data;
-    console.log(solAddress);
-    console.log(data);
-    
+    console.log("Signin Request Received:", solAddress);
+
     try {
-      const user = await Prisma.user.findUnique({
-        where: {
-          solAddress
-        }
-      });
-      let Message: string;
-      let status : number;
-      if (user) {
-        Message = "Login Successfull";
-        status = 200;
-      } else {
-        const newUser = await Prisma.user.create({
-          data: {
-            solAddress
-          }
-        })
-        Message = "User Signup Successfull";
-        status = 201;
+      const user = await Prisma.user.findUnique({ where: { solAddress } });
+      const Message = user ? "Login Successful" : "User Signup Successful";
+      const status = user ? 200 : 201;
+
+      if (!user) {
+        await Prisma.user.create({ data: { solAddress } });
       }
-     socket.emit("signin", { Message, status });
+
+      socket.emit("signin", { Message, status });
+
     } catch (error) {
-      socket.emit("error", {Message:"Error Occured",status:500});
-      console.log(error);
+      console.error("Error in signin:", error);
+      socket.emit("error", { Message: "Signin Failed", status: 500 });
     }
   });
+
   socket.on("leave-room", async (data) => {
     try {
-      // Destructure with default values to prevent undefined access
+      console.log("Leave Room Request Received:", data);
+
       const { roomCode = '', solAddress = '', Name = 'Guest' } = data;
 
-      // Check if required data is present
       if (!roomCode) {
-        console.error("Room code is required to leave the room.");
+        console.error("Room code is missing in leave-room.");
         return;
       }
 
-      // Remove user from the room
       const user = await leaveRoom(data);
       if (!user) {
-        console.error("Failed to remove user from the room.");
+        console.error("Failed to remove user from room.");
         return;
       }
 
-      console.log(`${Name} has left the room: ${roomCode}`);
-
-      // Leave the socket room
+      console.log(`User ${Name} left room: ${roomCode}`);
       socket.leave(roomCode);
 
-      // Notify other users in the room about the user who left
-      socket.to(roomCode).emit("leave-room", {
-        Message: `${Name} has left the room`,
-        user,
-      });
-      
-      // Get the updated list of members in the room
-      const members = await getRoomMembers(roomCode);
-      if (!members) {
-        console.error("Failed to fetch room members.");
-        return;
-      }
+      socket.to(roomCode).emit("leave-room", { Message: `${Name} has left the room` });
+      const Roomdata = await getRoomdetails(roomCode);
 
-      // Notify all users in the room about the updated members list
-      io.to(roomCode).emit("room-members", members);
+      io.to(roomCode).emit("get-room-data", Roomdata);
 
     } catch (error) {
-      console.error("Error handling leave-room event:", error);
+      console.error("Error in leave-room:", error);
     }
   });
-  socket.on("get-room-data", async (data) => {
-    console.log("Getting Room Data", data);
-    const Roomdata = await getRoomdetails(data.roomCode);
-    console.log("Room",Roomdata);
-    socket.emit("get-room-data",Roomdata);
-  });
 
+  socket.on("get-room-data", async (data) => {
+    try {
+      console.log("Get Room Data Request Received:", data);
+
+      const Roomdata = await getRoomdetails(data.roomCode);
+      console.log("Room Data Sent:", Roomdata);
+
+      socket.emit("get-room-data", Roomdata);
+
+    } catch (error) {
+      console.error("Error in get-room-data:", error);
+    }
+  });
 });
 
 httpServer.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
 });
-
-//SOCKET CONNECTION EMITS :
-/*
-  user-joined : When a user Joins a Room.
-
-   
-*/
-
-//SOCKET CONNECTION ON :
-/*
-  join-room : JOIN A ROOM.
-
-   
-*/

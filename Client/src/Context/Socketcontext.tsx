@@ -14,12 +14,18 @@ export interface SocketContexts {
     Data: Datatype[] | null;
     GetRoomData: (data: { roomCode: string }) => void;
     RoomData: RoomData | null;
+    CardData: CardsData | undefined;
+    Ready: boolean;
+    setReady: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface Datatype {
     name: string;
     roomId: string;
     user: User;
+    wins: number,
+    betQty: string,
+    bettedOn: string,
 }
 
 interface User {
@@ -40,6 +46,9 @@ interface RoomMember {
     userId: string;
     wins: number;
 }
+interface CardsData {
+    CurrCard: string;
+}
 
 const SocketContext = createContext<SocketContexts | undefined>(undefined);
 
@@ -47,7 +56,8 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     const [socket, setSocket] = useState<Socket | null>(null);
     const [Data, setData] = useState<Datatype[] | null>(null);
     const [RoomData, setRoomData] = useState<RoomData | null>(null);
-
+    const [CardData, setCardData] = useState<CardsData>()
+    const [Ready, setReady] = useState<boolean>(false)
     const Signinhandler = async (data: { solAddress: string | undefined }) => {
         socket?.emit("signin", { solAddress: data.solAddress });
     };
@@ -129,7 +139,7 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
         });
 
         newSocket.on("leave-room", (data) => {
-            toast.error(data.message, {
+            toast.error(data.Message, {
                 position: "bottom-right",
                 autoClose: 5000,
                 hideProgressBar: false,
@@ -141,7 +151,9 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
                 transition: Bounce,
             });
         });
-
+        newSocket.on("card-data", (data) => { 
+            setCardData(data);
+        });
         newSocket.on("get-room-data", (data) => {
             console.log(data);
             setRoomData(data);
@@ -153,7 +165,7 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     }, []);
 
     return (
-        <SocketContext.Provider value={{ socket, Signinhandler, CreateRoom, LeaveRoom, Data, GetRoomData, RoomData }}>
+        <SocketContext.Provider value={{ socket, Signinhandler, CreateRoom, LeaveRoom, Data, GetRoomData, RoomData, CardData ,Ready ,setReady}}>
             {children}
         </SocketContext.Provider>
     );
