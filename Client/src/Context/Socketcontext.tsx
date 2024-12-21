@@ -17,8 +17,8 @@ export interface SocketContexts {
     CardData: CardsData | undefined;
     Ready: boolean;
     setReady: React.Dispatch<React.SetStateAction<boolean>>;
-    MagicCard: (data: { roomCode: string |undefined }) => void;
-}
+    MagicCard: (data: { roomCode: string | undefined }) => void;
+    PlaceBet: (data: { roomCode: string | undefined, solAddress: string | undefined, betQty: number | undefined, bettedOn: number | undefined,}) => void;}
 
 interface Datatype {
     name: string;
@@ -41,6 +41,7 @@ interface RoomData {
     currentRound: number,
     pool: number,
     RoundStarted: boolean
+
 }
 
 interface RoomMember {
@@ -49,12 +50,13 @@ interface RoomMember {
     roomId: string;
     userId: string;
     wins: number,
-    betQty: string,
-    bettedOn: string,
+    betQty: number | null,
+    bettedOn: number | null,
 }
 interface CardsData {
     CurrCard: string;
 }
+
 
 const SocketContext = createContext<SocketContexts | undefined>(undefined);
 
@@ -81,6 +83,15 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     };
     const MagicCard = async (data: { roomCode: string | undefined }) => { 
         socket?.emit("select-magic-card", data);
+    }
+    const PlaceBet = async (data: {
+        roomCode: string | undefined,
+        solAddress: string | undefined,
+        betQty: number | undefined,
+        bettedOn: number | undefined,
+    }) => {
+        console.log(data);
+        socket?.emit("place-bet", data);
     }
 
     useEffect(() => {
@@ -174,7 +185,7 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     }, []);
 
     return (
-        <SocketContext.Provider value={{ socket, Signinhandler, CreateRoom, LeaveRoom, Data, GetRoomData, RoomData, CardData ,Ready ,setReady ,MagicCard}}>
+        <SocketContext.Provider value={{ socket, Signinhandler, CreateRoom, LeaveRoom, Data, GetRoomData, RoomData, CardData ,Ready ,setReady ,MagicCard ,PlaceBet}}>
             {children}
         </SocketContext.Provider>
     );

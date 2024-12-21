@@ -9,18 +9,17 @@ import { FiClock } from "react-icons/fi";
 import { BsLayoutSidebarInset } from "react-icons/bs"; //out
 import { BsLayoutSidebarInsetReverse } from "react-icons/bs"; //in
 
-
-
 const Room = () => {
   const [memberCount, setMemberCount] = useState<number | undefined>(undefined);
   const { id } = useParams();
-  const { LeaveRoom, GetRoomData, RoomData, Ready, setReady, MagicCard } = useSocket();
+  const { LeaveRoom, GetRoomData, RoomData, Ready, setReady, MagicCard, PlaceBet } = useSocket();
   const { publicKey } = useWallet();
   const router = useNavigate();
 
   const [betAmount, setBetAmount] = useState<number | undefined>(undefined);
-  const [betOption, setBetOption] = useState<string | undefined>("");
+  const [betOption, setBetOption] = useState<number | undefined>();
 
+  // Handlers for bet amount and bet option
   const handleBetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = Number(e.target.value);
 
@@ -32,15 +31,25 @@ const Room = () => {
   };
 
   const placeBet = () => {
-    if (betAmount && betAmount >= 1 && betAmount <= 999 && betOption) {
+    if (betAmount && betAmount >= 1 && betAmount <= 999 && betOption != null) {
       console.log(`Bet placed: ${betAmount} on ${betOption}`);
+      console.log(publicKey?.toBase58());
+      
+      PlaceBet({ roomCode: id, solAddress: publicKey?.toBase58(), betQty: betAmount, bettedOn: betOption });
+      // Clear bet amount and option after placing bet
+      setBetAmount(undefined);
+      setBetOption(undefined);
     } else {
       console.log("Please enter a valid bet amount and select a bet option.");
     }
   };
 
-  setReady(true);
+  // Mark user as ready when component loads
+  useEffect(() => {
+    setReady(true);
+  }, []);
 
+  // Fetch room data when room code changes
   useEffect(() => {
     if (GetRoomData && id) {
       GetRoomData({ roomCode: id });
@@ -48,6 +57,7 @@ const Room = () => {
     }
   }, [id, Ready]);
 
+  // Update member count when room data changes
   useEffect(() => {
     if (RoomData?.members?.length !== memberCount) {
       setMemberCount(RoomData?.members?.length);
@@ -85,24 +95,23 @@ const Room = () => {
           <div className="border border-zinc-700 rounded-lg p-5 flex w-[30vh] flex-col gap-2 h-[20vh] text-zinc-200">
             <h1 className="font-semibold">Current Round: {RoomData?.rounds}</h1>
             <div className="flex flex-col gap-2">
-              { 
-                RoomData?.members.map((item, index) => (
-                  <div key={index} className="flex items-center gap-5">
-                    <div className="flex items-center gap-2">
-                      <div className="text-zinc-200 font-semibold text-sm w-24 flex gap-1">
-                        {item.name}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="text-zinc-200 font-semibold text-sm">{item.bettedOn == null ? <FiClock size={15} /> : item.bettedOn== "Andhar" ? <BsLayoutSidebarInset size={15} /> : <BsLayoutSidebarInsetReverse size={15} />
-                      }</div>
-                    </div>
+              {RoomData?.members.map((item, index) => (
+                <div key={index} className="flex items-center gap-5">
+                  <div className="flex items-center gap-2">
                     <div className="text-zinc-200 font-semibold text-sm w-24 flex gap-1">
-                      {item.betQty}
+                      {item.name}
                     </div>
                   </div>
-                ))
-              }
+                  <div className="flex items-center gap-2">
+                    <div className="text-zinc-200 font-semibold text-sm">
+                      {item.bettedOn == null ? <FiClock size={15} /> : item.bettedOn === 0 ? <BsLayoutSidebarInset size={15} /> : <BsLayoutSidebarInsetReverse size={15} />}
+                    </div>
+                  </div>
+                  <div className="text-zinc-200 font-semibold text-sm w-24 flex gap-1">
+                    {item.betQty}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
           <div className="border border-zinc-700 rounded-lg p-5 flex w-[30vh] flex-col gap-2 h-[25vh] text-zinc-200">
@@ -120,14 +129,14 @@ const Room = () => {
 
             <div className="flex gap-2 mt-3">
               <button
-                className={`p-2 border border-zinc-700  text-zinc-200 font-semibold rounded-lg w-full ${betOption === "Andhar" ? "bg-zinc-700 border-green-600" : ""}`}
-                onClick={() => setBetOption("Andhar")}
+                className={`p-2 border border-zinc-700 text-zinc-200 font-semibold rounded-lg w-full ${betOption === 0 ? "bg-zinc-700 border-green-600" : ""}`}
+                onClick={() => setBetOption(0)}
               >
                 Andhar
               </button>
               <button
-                className={`p-2 border border-zinc-700  text-zinc-200 font-semibold rounded-lg w-full ${betOption === "Bahar" ? "bg-zinc-700 border-green-600" : ""}`}
-                onClick={() => setBetOption("Bahar")}
+                className={`p-2 border border-zinc-700 text-zinc-200 font-semibold rounded-lg w-full ${betOption === 1 ? "bg-zinc-700 border-green-600" : ""}`}
+                onClick={() => setBetOption(1)}
               >
                 Bahar
               </button>

@@ -1,7 +1,7 @@
 import express from 'express';
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { createAndUpdateRoom, getRoomdetails, getRoomMembers, leaveRoom, selectRandomCard } from './Utils/lib';
+import { createAndUpdateRoom, getRoomdetails, getRoomMembers, leaveRoom, placeBet, selectRandomCard } from './Utils/lib';
 import Prisma from './Utils/Prisma';
 
 const app = express();
@@ -131,6 +131,44 @@ io.on("connection", (socket) => {
       
     }
   })
+  socket.on("place-bet", async (data, callback) => {
+    try {
+      // Extract data and ensure required fields are present
+      const { roomCode = '', solAddress = '', betQty = 0, bettedOn = 0 } = data;
+
+      // Check if roomCode and solAddress are provided
+      if (!roomCode || !solAddress) {
+        console.error("Room code or solAddress is missing in place-bet.");
+        return;
+      }
+
+      // Validate betQty and bettedOn
+      if (betQty < 1 || betQty > 999) {
+        console.error("Bet quantity must be between 1 and 999.");
+        return;
+      }
+      if (![0, 1].includes(bettedOn)) {
+        console.error("Invalid bet option. Please choose between 0 (Andar) and 1 (Bahar).");
+        return;
+      }
+
+      console.log("Place Bet Request Received:", data);
+
+      // Place the bet
+      await placeBet(data);
+
+      const Roomdata = await getRoomdetails(roomCode);
+      console.log("Room Data Fetched Successfully:", Roomdata);
+
+      // Emit updated room data to clients in the room
+      io.to(roomCode).emit("get-room-data", Roomdata);
+
+      // Send acknowledgment to the client who placed the bet
+    } catch (error) {
+      console.error("Error in place-bet:", error);
+    }
+  });
+
 });
 
 httpServer.listen(port, () => {
