@@ -15,26 +15,30 @@ export interface SocketContexts {
     GetRoomData: (data: { roomCode: string }) => void;
     RoomData: RoomData | null;
 }
- interface Datatype { 
+
+interface Datatype {
     name: string;
-    roomId: string
-    user:User
+    roomId: string;
+    user: User;
 }
-interface User{
+
+interface User {
     id: string;
     solAddress: string;
 }
-interface RoomData { 
-    members: RoomMember[]
-    rounds: number
+
+interface RoomData {
+    members: RoomMember[];
+    rounds: number;
 }
-interface RoomMember{
-    SelectedCard:number
-    id: string
-    name: string
-    roomId: string
-    userId: string
-    wins: number
+
+interface RoomMember {
+    SelectedCard: number;
+    id: string;
+    name: string;
+    roomId: string;
+    userId: string;
+    wins: number;
 }
 
 const SocketContext = createContext<SocketContexts | undefined>(undefined);
@@ -43,22 +47,26 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     const [socket, setSocket] = useState<Socket | null>(null);
     const [Data, setData] = useState<Datatype[] | null>(null);
     const [RoomData, setRoomData] = useState<RoomData | null>(null);
-    const Signinhandler = async (data: { solAddress: string  | undefined}) => {
+
+    const Signinhandler = async (data: { solAddress: string | undefined }) => {
         socket?.emit("signin", { solAddress: data.solAddress });
-    }
-    const CreateRoom = async (data: { Name: string, roomCode: string, solAddress: string | undefined }) => { 
+    };
+
+    const CreateRoom = async (data: { Name: string, roomCode: string, solAddress: string | undefined }) => {
         socket?.emit("join-room", data);
     };
-    const LeaveRoom = async (data: { Name: string, roomCode: string, solAddress: string | undefined }) => { 
+
+    const LeaveRoom = async (data: { Name: string, roomCode: string, solAddress: string | undefined }) => {
         socket?.emit("leave-room", data);
-    }
-    const GetRoomData = async (data: { roomCode: string }) => { 
+    };
+
+    const GetRoomData = async (data: { roomCode: string }) => {
         socket?.emit("get-room-data", data);
-    }
+    };
+
     useEffect(() => {
         const newSocket = io('http://localhost:3000');
         setSocket(newSocket);
- // Safeguard for undefined socket
 
         newSocket.on("signin", (data) => {
             toast.success(data.Message, {
@@ -73,6 +81,7 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
                 transition: Bounce,
             });
         });
+
         newSocket.on("error", (error) => {
             toast.error(error, {
                 position: "bottom-right",
@@ -86,6 +95,7 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
                 transition: Bounce,
             });
         });
+
         newSocket.on("user-joined", (data) => {
             toast.success(data.Message, {
                 position: "bottom-right",
@@ -99,7 +109,8 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
                 transition: Bounce,
             });
         });
-        newSocket.on("room-created", () => { 
+
+        newSocket.on("room-created", () => {
             toast.success("Room Created", {
                 position: "bottom-right",
                 autoClose: 5000,
@@ -112,9 +123,11 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
                 transition: Bounce,
             });
         });
+
         newSocket.on("room-members", (members) => {
             setData(members);
         });
+
         newSocket.on("leave-room", (data) => {
             toast.error(data.message, {
                 position: "bottom-right",
@@ -128,17 +141,19 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
                 transition: Bounce,
             });
         });
+
         newSocket.on("get-room-data", (data) => {
             console.log(data);
             setRoomData(data);
         });
+
         return () => {
             newSocket.disconnect();
         };
     }, []);
 
     return (
-        <SocketContext.Provider value={{ socket, Signinhandler ,CreateRoom,LeaveRoom ,Data,GetRoomData ,RoomData}}>
+        <SocketContext.Provider value={{ socket, Signinhandler, CreateRoom, LeaveRoom, Data, GetRoomData, RoomData }}>
             {children}
         </SocketContext.Provider>
     );

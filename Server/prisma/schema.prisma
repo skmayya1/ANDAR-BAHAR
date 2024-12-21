@@ -6,7 +6,6 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
 model User {
   id         String   @id @default(cuid())
   solAddress String   @unique
@@ -16,26 +15,30 @@ model User {
 }
 
 model Room {
-  id         String   @id @default(cuid())
-  code       String   @unique // Invite code for joining the room
-  members    RoomMember[]
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  rounds     Int  @default(0)
+  id              String   @id @default(cuid())
+  code            String   @unique 
+  members         RoomMember[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  rounds          Int      @default(0)
+  currentMagicCard String? 
+  pool            Int      @default(0)
+  currentRound    Int      @default(0) // Lowercase field name
 }
 
 model RoomMember {
   id        String   @id @default(cuid())
   roomId    String
   userId    String
-  name      String?
+  name      String?  
   wins      Int      @default(0)
-  SelectedCard String?
+  bettedOn  Int?     // Changed to camelCase
+  betQty    Int?     // Changed to camelCase
   room      Room     @relation(fields: [roomId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([userId, roomId]) 
-  @@index([roomId])
+  @@index([roomId, userId]) // Composite index for faster queries
 }
