@@ -34,7 +34,7 @@ model RoomMember {
   userId    String
   name      String?  
   wins      Int      @default(0)
-  bettedOn  Int?    
+  bettedOn  Int?    //0 for andar 1 for bahar
   betQty    Int?    
   room      Room     @relation(fields: [roomId], references: [id])
   user      User     @relation(fields: [userId], references: [id])

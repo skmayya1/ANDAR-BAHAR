@@ -5,6 +5,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useSocket } from "../Hooks/Socket";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Navbar from "../Components/Room/Navbar";
+import { FiClock } from "react-icons/fi";
+import { BsLayoutSidebarInset } from "react-icons/bs"; //out
+import { BsLayoutSidebarInsetReverse } from "react-icons/bs"; //in
+
+
 
 const Room = () => {
   const [memberCount, setMemberCount] = useState<number | undefined>(undefined);
@@ -79,6 +84,26 @@ const Room = () => {
           </div>
           <div className="border border-zinc-700 rounded-lg p-5 flex w-[30vh] flex-col gap-2 h-[20vh] text-zinc-200">
             <h1 className="font-semibold">Current Round: {RoomData?.rounds}</h1>
+            <div className="flex flex-col gap-2">
+              { 
+                RoomData?.members.map((item, index) => (
+                  <div key={index} className="flex items-center gap-5">
+                    <div className="flex items-center gap-2">
+                      <div className="text-zinc-200 font-semibold text-sm w-24 flex gap-1">
+                        {item.name}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-zinc-200 font-semibold text-sm">{item.bettedOn == null ? <FiClock size={15} /> : item.bettedOn== "Andhar" ? <BsLayoutSidebarInset size={15} /> : <BsLayoutSidebarInsetReverse size={15} />
+                      }</div>
+                    </div>
+                    <div className="text-zinc-200 font-semibold text-sm w-24 flex gap-1">
+                      {item.betQty}
+                    </div>
+                  </div>
+                ))
+              }
+            </div>
           </div>
           <div className="border border-zinc-700 rounded-lg p-5 flex w-[30vh] flex-col gap-2 h-[25vh] text-zinc-200">
             <h1 className="font-semibold">Place Bet:</h1>

@@ -44,12 +44,13 @@ interface RoomData {
 }
 
 interface RoomMember {
-    SelectedCard: number;
     id: string;
     name: string;
     roomId: string;
     userId: string;
-    wins: number;
+    wins: number,
+    betQty: string,
+    bettedOn: string,
 }
 interface CardsData {
     CurrCard: string;
