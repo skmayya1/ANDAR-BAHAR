@@ -6,7 +6,11 @@ import Prisma from './Utils/Prisma';
 
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, { cors: { origin: "*" } });
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*", // Allow all origins (adjust this for production)
+  },
+});
 const port = process.env.PORT || 3000;
 
 io.on("connection", (socket) => {

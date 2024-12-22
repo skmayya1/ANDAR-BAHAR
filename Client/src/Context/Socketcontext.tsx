@@ -95,7 +95,12 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     }
 
     useEffect(() => {
-        const newSocket = io('http://localhost:3000');
+        const newSocket = io('http://localhost:3000', {
+            reconnection: true, // Enable auto-reconnection
+            reconnectionAttempts: Infinity, // Retry indefinitely
+            reconnectionDelay: 1000, // Delay before retry
+            reconnectionDelayMax: 5000, // Max delay between retries
+        });
         setSocket(newSocket);
 
         newSocket.on("signin", (data) => {
@@ -177,6 +182,13 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
         newSocket.on("get-room-data", (data) => {
             console.log(data);
             setRoomData(data);
+        });
+        newSocket.on('disconnect', (reason) => {
+            console.log(`Disconnected: ${reason}`);
+        });
+
+        newSocket.on('connect_error', (error) => {
+            console.error('Connection error:', error);
         });
 
         return () => {

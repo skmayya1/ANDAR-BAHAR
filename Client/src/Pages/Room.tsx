@@ -74,7 +74,7 @@ const Room = () => {
   return (
     <div className="text-black bg-zinc-800 h-screen w-full font-mono">
       <Navbar LeaveHabndler={LeaveHandler} MemberCount={memberCount} />
-      <div className="flex justify-between pl-10 pr-36 items-center">
+      <div className="flex  justify-between pl-10 pr-36 items-center">
         <div className="flex flex-col gap-3 items-center">
           <div className="border border-zinc-700 rounded-lg p-5 w-[30vh] flex flex-col gap-2 h-[20vh] overflow-hidden">
             <h1 className="text-zinc-200 font-semibold">Participants:</h1>
@@ -104,7 +104,7 @@ const Room = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="text-zinc-200 font-semibold text-sm">
-                      {item.bettedOn == null ? <FiClock size={15} /> : item.bettedOn === 0 ? <BsLayoutSidebarInset size={15} /> : <BsLayoutSidebarInsetReverse size={15} />}
+                      {item.bettedOn == null ? <FiClock size={15} /> : item.bettedOn === 1 ? <BsLayoutSidebarInset size={15} /> : <BsLayoutSidebarInsetReverse size={15} />}
                     </div>
                   </div>
                   <div className="text-zinc-200 font-semibold text-sm w-24 flex gap-1">
@@ -128,17 +128,17 @@ const Room = () => {
             />
 
             <div className="flex gap-2 mt-3">
-              <button
-                className={`p-2 border border-zinc-700 text-zinc-200 font-semibold rounded-lg w-full ${betOption === 0 ? "bg-zinc-700 border-green-600" : ""}`}
-                onClick={() => setBetOption(0)}
-              >
-                Andhar
-              </button>
-              <button
-                className={`p-2 border border-zinc-700 text-zinc-200 font-semibold rounded-lg w-full ${betOption === 1 ? "bg-zinc-700 border-green-600" : ""}`}
+              <button 
+                className={`p-2 border  text-zinc-200 font-semibold rounded-lg w-full ${betOption === 1 ? "bg-zinc-700 border-green-600" : "border-zinc-700"}`}
                 onClick={() => setBetOption(1)}
               >
                 Bahar
+              </button>
+              <button
+                className={`p-2 border  text-zinc-200 font-semibold rounded-lg w-full ${betOption === 0 ? "bg-zinc-700 border-green-600" : "border-zinc-700"}`}
+                onClick={() => setBetOption(0)}
+              >
+                Andar
               </button>
             </div>
 
@@ -150,22 +150,28 @@ const Room = () => {
             </button>
           </div>
         </div>
-        <div className="h-[20vw] flex items-center w-full px-20 gap-20">
-          <div className="text-zinc-200 font-semibold font-mono text-center items-center flex justify-center flex-col gap-1 mb-8">
-            <img src="/1B.svg" alt="Card SVG" width="200px" height="300px" />
+        <div className="h-[20vw] flex-col flex items-center w-full px-20 gap-10">
+          <div className="h-full w-full flex items-center justify-center gap-20">
+            <div className="text-zinc-200 font-semibold font-mono text-center items-center flex justify-center flex-col gap-1 mb-8">
+              <img src="/1B.svg" alt="Card SVG" width="200px" height="300px" />
+            </div>
+            <div className="text-zinc-200 font-semibold font-mono text-center items-center flex justify-center flex-col gap-1 h-[310px] w-[200px] border border-zinc-700 rounded-3xl">
+              <h1>Bahar</h1>
+            </div>
+            <div className="text-zinc-200 font-semibold font-mono text-center items-center flex justify-center flex-col gap-1 h-[310px] w-[200px] border border-zinc-700 rounded-3xl">
+              <h1>Andar</h1>
+            </div>
+            <div className="text-zinc-200 font-semibold font-mono text-center items-center flex justify-center flex-col gap-1 border-4 border-zinc-600 rounded-3xl mb-8 h-[310px] w-[200px]">
+              {RoomData?.currentMagicCard ? (
+                <img src={"/" + RoomData?.currentMagicCard + ".svg"} alt="Card SVG" width="200px" height="300px" />
+              ) : (
+                <h1>Magic Card</h1>
+              )}
+            </div>
           </div>
-          <div className="text-zinc-200 font-semibold font-mono text-center items-center flex justify-center flex-col gap-1 h-[310px] w-[200px] border border-zinc-700 rounded-3xl">
-            <h1>Bahar</h1>
-          </div>
-          <div className="text-zinc-200 font-semibold font-mono text-center items-center flex justify-center flex-col gap-1 h-[310px] w-[200px] border border-zinc-700 rounded-3xl">
-            <h1>Andar</h1>
-          </div>
-          <div className="text-zinc-200 font-semibold font-mono text-center items-center flex justify-center flex-col gap-1 border-4 border-zinc-600 rounded-3xl mb-8 h-[310px] w-[200px]">
-            {RoomData?.currentMagicCard ? (
-              <img src={"/" + RoomData?.currentMagicCard + ".svg"} alt="Card SVG" width="200px" height="300px" />
-            ) : (
-              <h1>Magic Card</h1>
-            )}
+          <div className="text-zinc-200 border border-zinc-700 px-3 py-1.5 rounded-lg flex shadow-sm shadow-zinc-400 gap-2">
+            <p>Total Pool: </p>
+            <p className="font-semibold">{RoomData?.pool}</p>
           </div>
         </div>
       </div>

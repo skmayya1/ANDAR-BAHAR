@@ -209,77 +209,105 @@ export function selectRandomCard():string {
     const randomIndex = Math.floor(Math.random() * cards.length);
     return cards[randomIndex];
 }
-
 export const placeBet = async (data: { roomCode: string, solAddress: string, betQty: number, bettedOn: number }) => {
     try {
+        console.log("Placing bet with data:", data);
+
         // Find user by Solana address
-        console.log(data);
-        
         const user = await Prisma.user.findUnique({ where: { solAddress: data.solAddress } });
         if (!user) {
-            throw new Error('User not found');
+            return { message: 'User not found', success: false };
         }
 
-        // Find room by code, select members' bets and round status
+        // Find room and its members
         const room = await Prisma.room.findUnique({
-            where: { code: data.roomCode }, select: {
+            where: { code: data.roomCode },
+            select: {
                 members: {
                     select: {
-                        bettedOn: true
-                    }
+                        bettedOn: true,
+                        user: { select: { id: true } },
+                    },
                 },
                 RoundStarted: true,
                 id: true,
-            }
+                pool: true,
+            },
         });
         if (!room) {
-            throw new Error('Room not found');
+            return { message: 'Room not found', success: false };
         }
 
-        // Find the member in the room
+        const memberBet = room.members.find((member) => member.user.id === user.id)?.bettedOn;
+        console.log(memberBet);
+        
+        if (memberBet !== null) {
+            return { message: 'User already placed a bet', success: false };
+        }
+
+        // Find the room member for the user
         const roomMember = await Prisma.roomMember.findUnique({
             where: {
                 userId_roomId: {
                     userId: user.id,
                     roomId: room.id,
-                }
-            }
+                },
+            },
         });
         if (!roomMember) {
-            throw new Error('Room member not found');
+            return { message: 'Room member not found', success: false };
         }
 
-        // Update the member's bet in the room
+        // Place the bet
         await Prisma.roomMember.update({
             where: {
                 userId_roomId: {
                     userId: user.id,
                     roomId: room.id,
-                }
+                },
             },
             data: {
                 betQty: data.betQty,
-                bettedOn: data.bettedOn
-            }
+                bettedOn: data.bettedOn,
+            },
         });
 
-        // Check if round should start (Round not started and no null bets among members)
-        if (!room.RoundStarted && !room.members.some(member => member.bettedOn === null)) {
+        const updatedRoom = await Prisma.room.findUnique({
+            where: { code: data.roomCode },
+            select: {
+                members: {
+                    select: {
+                        bettedOn: true,
+                    },
+                },
+                RoundStarted: true, // Include this field to check its current state
+            },
+        });
+
+        const allBetsPlaced =
+            updatedRoom.members.length > 0 && // Ensure there are members in the room
+            !updatedRoom.RoundStarted && // Use the updated state of RoundStarted
+            updatedRoom.members.every((member) => member.bettedOn !== null); // Check if all have placed bets
+
+        console.log("All bets placed:", allBetsPlaced);
+
+        if (allBetsPlaced) {
             await StartRound({ roomCode: data.roomCode });
         }
 
-        return { message: 'Bet placed successfully.' };
+
+        return { message: 'Bet placed successfully.', success: true };
     } catch (error) {
-        console.error(error);
-        return { message: 'An error occurred while placing the bet.' };
+        console.error('Error placing bet:', error);
+        return { message: 'An internal error occurred while placing the bet.', success: false };
     }
-}
+};
 
 const StartRound = async (data: { roomCode: string }) => {
     try {
-        console.log("Starting Round with Data:", data);
-        // Your logic to start the round
+        console.log("Starting round with data:", data);
+        
     } catch (error) {
-        console.error(error);
+        console.error('Error starting round:', error);
     }
-}
+};
