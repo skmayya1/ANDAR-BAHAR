@@ -12,7 +12,7 @@ import { BsLayoutSidebarInsetReverse } from "react-icons/bs"; //in
 const Room = () => {
   const [memberCount, setMemberCount] = useState<number | undefined>(undefined);
   const { id } = useParams();
-  const { LeaveRoom, GetRoomData, RoomData, Ready, setReady, MagicCard, PlaceBet } = useSocket();
+  const { LeaveRoom, GetRoomData, RoomData, Ready, setReady, MagicCard, PlaceBet,currCarddata } = useSocket();
   const { publicKey } = useWallet();
   const router = useNavigate();
 
@@ -156,10 +156,11 @@ const Room = () => {
               <img src="/1B.svg" alt="Card SVG" width="200px" height="300px" />
             </div>
             <div className="text-zinc-200 font-semibold font-mono text-center items-center flex justify-center flex-col gap-1 h-[310px] w-[200px] border border-zinc-700 rounded-3xl">
-              <h1>Bahar</h1>
+              {currCarddata && currCarddata.number == 1 ? <img src={"/" + currCarddata?.card + ".svg"} alt="" width="200px" height="300px" /> : <h1>Bahar</h1>}
+
             </div>
             <div className="text-zinc-200 font-semibold font-mono text-center items-center flex justify-center flex-col gap-1 h-[310px] w-[200px] border border-zinc-700 rounded-3xl">
-              <h1>Andar</h1>
+              {currCarddata && currCarddata.number == 0 ? <img src={"/" + currCarddata?.card + ".svg"} alt="" width="200px" height="300px" /> : <h1>Andar</h1>}
             </div>
             <div className="text-zinc-200 font-semibold font-mono text-center items-center flex justify-center flex-col gap-1 border-4 border-zinc-600 rounded-3xl mb-8 h-[310px] w-[200px]">
               {RoomData?.currentMagicCard ? (

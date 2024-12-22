@@ -271,6 +271,12 @@ export const placeBet = async (data: { roomCode: string, solAddress: string, bet
                 bettedOn: data.bettedOn,
             },
         });
+        await Prisma.room.update({
+            where: { code: data.roomCode },
+            data: {
+                pool: room.pool + data.betQty,
+            },
+        })
 
         const updatedRoom = await Prisma.room.findUnique({
             where: { code: data.roomCode },
@@ -283,7 +289,7 @@ export const placeBet = async (data: { roomCode: string, solAddress: string, bet
                 RoundStarted: true, // Include this field to check its current state
             },
         });
-
+        let RoundStart = false;
         const allBetsPlaced =
             updatedRoom.members.length > 0 && // Ensure there are members in the room
             !updatedRoom.RoundStarted && // Use the updated state of RoundStarted
@@ -292,11 +298,12 @@ export const placeBet = async (data: { roomCode: string, solAddress: string, bet
         console.log("All bets placed:", allBetsPlaced);
 
         if (allBetsPlaced) {
-            await StartRound({ roomCode: data.roomCode });
+           RoundStart =  await StartRound({ roomCode: data.roomCode });
         }
 
 
-        return { message: 'Bet placed successfully.', success: true };
+
+        return RoundStart;
     } catch (error) {
         console.error('Error placing bet:', error);
         return { message: 'An internal error occurred while placing the bet.', success: false };
@@ -306,8 +313,20 @@ export const placeBet = async (data: { roomCode: string, solAddress: string, bet
 const StartRound = async (data: { roomCode: string }) => {
     try {
         console.log("Starting round with data:", data);
-        
+        await Prisma.room.update({
+            where: {
+                code: data.roomCode,
+            },
+            data: {
+                RoundStarted:true
+            }
+        })
+        return true;
     } catch (error) {
         console.error('Error starting round:', error);
     }
 };
+
+export const CardDistribution = async (data: { roomCode: string }) => { 
+
+}

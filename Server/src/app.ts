@@ -1,16 +1,17 @@
 import express from 'express';
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { createAndUpdateRoom, getRoomdetails, getRoomMembers, leaveRoom, placeBet, selectRandomCard } from './Utils/lib';
+import {  createAndUpdateRoom, getRoomdetails, getRoomMembers, leaveRoom, placeBet, selectRandomCard } from './Utils/lib';
 import Prisma from './Utils/Prisma';
 
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  cors: {
-    origin: "*", // Allow all origins (adjust this for production)
-  },
+  cors: { origin: "*" },
+  pingTimeout: 60000,  // Set the timeout duration in milliseconds
+  pingInterval: 25000  // Set the interval at which pings are sent to keep the connection alive
 });
+
 const port = process.env.PORT || 3000;
 
 io.on("connection", (socket) => {
@@ -159,7 +160,11 @@ io.on("connection", (socket) => {
       console.log("Place Bet Request Received:", data);
 
       // Place the bet
-      await placeBet(data);
+      const startRound = await placeBet(data);
+      if (startRound) {
+        console.log("Round Started");
+        io.to(roomCode).emit("round-started", { Message: "Round Started",roomCode:roomCode });
+      }
 
       const Roomdata = await getRoomdetails(roomCode);
       console.log("Room Data Fetched Successfully:", Roomdata);
@@ -172,7 +177,131 @@ io.on("connection", (socket) => {
       console.error("Error in place-bet:", error);
     }
   });
+  let winners = [];
+  socket.on("start-round", async (data) => {
+    console.log("Starting cards distribution", data);
+    const cards = [
+      "2D", "2S", "2H", "2C",
+      "3D", "3S", "3H", "3C",
+      "4D", "4S", "4H", "4C",
+      "5D", "5S", "5H", "5C",
+      "6D", "6S", "6H", "6C",
+      "7D", "7S", "7H", "7C",
+      "8D", "8S", "8H", "8C",
+      "9D", "9S", "9H", "9C",
+      "JD", "JS", "JH", "JC",
+      "QD", "QS", "QH", "QC",
+      "KD", "KS", "KH", "KC",
+      "AD", "AS", "AH", "AC",
+    ];
 
+    const room = await Prisma.room.findUnique({
+      where: { code: data.roomCode },
+      select: {
+        currentMagicCard: true,
+        pool: true,
+        members: true,
+        id: true,
+      },
+    });
+
+    if (!room) {
+      socket.emit("error", { message: "Room not found." });
+      return;
+    }
+
+    socket.emit("round-start", { message: "Round Started", magicCard: room.currentMagicCard });
+    
+    let isZero = true; // Start with 0
+    const members = await Prisma.room.findUnique({
+      where: { code: data.roomCode },
+      select: {
+        members: {
+          select: {
+            bettedOn: true,
+            betQty: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    let intervalId = setInterval(async () => {
+      if (cards.length === 0) {
+        clearInterval(intervalId); // Stop the interval when the deck is empty
+        socket.emit("round-ended", { message: "Round has ended. All cards distributed." });
+        return;
+      }
+
+      const randomIndex = Math.floor(Math.random() * cards.length);
+      const card = cards[randomIndex];
+      cards.splice(randomIndex, 1); // Remove the card from the deck
+
+      const currentNumber = isZero ? 1 : 0;
+      isZero = !isZero; // Toggle between 0 and 1
+
+      if (room.currentMagicCard[0] === card[0]) {  // Corrected comparison to check the first character
+        for (const member of members.members) {  // Use for...of for synchronous behavior
+          if (member.bettedOn === currentNumber) {
+            winners.push(member);
+            console.log("Member won:", member);
+          }
+        }
+
+        if (winners.length > 0) {
+          const amount = room.pool / winners.length;
+
+          // Stop the interval when winners are found
+          clearInterval(intervalId);
+
+          await Prisma.roomMember.updateMany({
+            where: {
+              roomId: room.id,
+              name: { in: winners.map((winner) => winner.name) },
+            },
+            data: {
+              wins: {
+                increment: amount,
+              },
+            },
+          });
+         const newCard = await selectRandomCard();
+          await Prisma.room.update({
+            where: { code: data.roomCode },
+            data: {
+              currentMagicCard: newCard,
+              rounds: {
+                increment: 1,
+              },
+              RoundStarted: false,
+              members: {
+                updateMany: {
+                  where: {
+                    roomId: room.id
+                  },
+                  data: {
+                    betQty: 0,
+                    bettedOn: null
+                  }
+                }
+              }
+            }
+          });
+
+          io.to(data.roomCode).emit("round-ended", {
+            message: "Round ended. Winners: " + winners.map(winner => winner.name).join(", "),
+            winners: winners,
+            card,
+            number: currentNumber,
+            amountWon: amount,
+            roomCode: data.roomCode,
+          });
+        }
+      }
+      console.log(winners.length);
+        io.to(data.roomCode).emit("card-distribution", { card, number: currentNumber,winner:winners });
+    }, 2000);
+  });
 });
 
 httpServer.listen(port, () => {

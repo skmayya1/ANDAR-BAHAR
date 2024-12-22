@@ -18,7 +18,9 @@ export interface SocketContexts {
     Ready: boolean;
     setReady: React.Dispatch<React.SetStateAction<boolean>>;
     MagicCard: (data: { roomCode: string | undefined }) => void;
-    PlaceBet: (data: { roomCode: string | undefined, solAddress: string | undefined, betQty: number | undefined, bettedOn: number | undefined,}) => void;}
+    PlaceBet: (data: { roomCode: string | undefined, solAddress: string | undefined, betQty: number | undefined, bettedOn: number | undefined, }) => void;
+    currCarddata: CardsData | undefined;
+}
 
 interface Datatype {
     name: string;
@@ -54,7 +56,8 @@ interface RoomMember {
     bettedOn: number | null,
 }
 interface CardsData {
-    CurrCard: string;
+    card: string;
+    number: number;
 }
 
 
@@ -66,6 +69,7 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     const [RoomData, setRoomData] = useState<RoomData | null>(null);
     const [CardData, setCardData] = useState<CardsData>()
     const [Ready, setReady] = useState<boolean>(false)
+    const [currCarddata, setcurrCarddata] = useState<CardsData | undefined>()
     const Signinhandler = async (data: { solAddress: string | undefined }) => {
         socket?.emit("signin", { solAddress: data.solAddress });
     };
@@ -190,6 +194,40 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
         newSocket.on('connect_error', (error) => {
             console.error('Connection error:', error);
         });
+        newSocket.on("round-started", (data) => {
+            console.log(data);
+            toast.success(data.Message, {
+                position: "bottom-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+                transition: Bounce,
+            });
+            newSocket.emit("start-round", { roomCode: data.roomCode });
+        })
+        newSocket.on("card-distribution", (data) => {
+            setcurrCarddata(data);
+            console.log(data);
+        })
+        newSocket.on("round-ended", (data) => {
+            newSocket.emit("get-room-data", { roomCode: data.roomCode });
+            console.log(data);
+            toast.success(data.message, {
+                position: "bottom-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+                transition: Bounce,
+            });
+         })
 
         return () => {
             newSocket.disconnect();
@@ -197,7 +235,7 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     }, []);
 
     return (
-        <SocketContext.Provider value={{ socket, Signinhandler, CreateRoom, LeaveRoom, Data, GetRoomData, RoomData, CardData ,Ready ,setReady ,MagicCard ,PlaceBet}}>
+        <SocketContext.Provider value={{ socket, Signinhandler, CreateRoom, LeaveRoom, Data, GetRoomData, RoomData, CardData, Ready, setReady, MagicCard, PlaceBet, currCarddata }}>
             {children}
         </SocketContext.Provider>
     );
