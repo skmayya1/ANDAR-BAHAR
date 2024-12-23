@@ -231,6 +231,7 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
                 theme: "dark",
                 transition: Bounce,
             });
+            setcurrCarddata(undefined)
          })
 
         return () => {

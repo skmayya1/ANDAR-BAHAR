@@ -70,6 +70,9 @@ const Room = () => {
       router("/");
     }
   };
+  const SortedArray = RoomData?.members.sort((a, b) => b.wins - a.wins);
+  console.log(SortedArray);
+  
 
   return (
     <div className="text-black bg-zinc-800 h-screen w-full font-mono">
@@ -78,19 +81,32 @@ const Room = () => {
         <div className="flex flex-col gap-3 items-center">
           <div className="border border-zinc-700 rounded-lg p-5 w-[30vh] flex flex-col gap-2 h-[20vh] overflow-hidden">
             <h1 className="text-zinc-200 font-semibold">Participants:</h1>
-            {RoomData?.members?.map((item, index) => (
-              <div key={index} className="flex items-center gap-5">
-                <div className="flex items-center gap-2">
-                  <div className="text-zinc-200 font-semibold text-sm w-24 flex gap-1">
-                    <GiPodiumWinner color="yellow" size={18} />
-                    {item.name}
+            {SortedArray?.map((item, index) => {
+              // Determine the color based on the index
+              let iconColor = "white"; // Default color for others
+              if (index === 0) {
+                iconColor = "yellow"; // Yellow for 1st place
+              } else if (index === 1) {
+                iconColor = "silver"; // Silver for 2nd place
+              } else if (index === 2) {
+                iconColor = "bronze"; // Bronze for 3rd place
+              }
+
+              return (
+                <div key={index} className="flex items-center gap-5">
+                  <div className="flex items-center gap-2">
+                    <div className="text-zinc-200 font-semibold text-sm w-24 flex gap-1">
+                      <GiPodiumWinner color={iconColor} size={18} />
+                      {item.name}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-zinc-200 font-semibold text-sm">{item.wins}</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="text-zinc-200 font-semibold text-sm">{item.wins}</div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
+
           </div>
           <div className="border border-zinc-700 rounded-lg p-5 flex w-[30vh] flex-col gap-2 h-[20vh] text-zinc-200">
             <h1 className="font-semibold">Current Round: {RoomData?.rounds}</h1>
