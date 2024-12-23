@@ -58,6 +58,12 @@ interface RoomMember {
 interface CardsData {
     card: string;
     number: number;
+    winner: Imember[] | null;
+}
+interface Imember{
+    name: string;
+    bettedOn: number;
+    betQty: number;
 }
 
 
@@ -73,7 +79,6 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     const Signinhandler = async (data: { solAddress: string | undefined }) => {
         socket?.emit("signin", { solAddress: data.solAddress });
     };
-
     const CreateRoom = async (data: { Name: string, roomCode: string, solAddress: string | undefined }) => {
         socket?.emit("join-room", data);
     };
@@ -207,8 +212,7 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
                 theme: "dark",
                 transition: Bounce,
             });
-            newSocket.emit("start-round", { roomCode: data.roomCode });
-        })
+         })
         newSocket.on("card-distribution", (data) => {
             setcurrCarddata(data);
             console.log(data);

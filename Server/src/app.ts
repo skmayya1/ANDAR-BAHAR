@@ -117,6 +117,7 @@ io.on("connection", (socket) => {
       console.error("Error in get-room-data:", error);
     }
   });
+
   socket.on("select-magic-card", async (data) => {
     const { roomCode } = data;
     console.log("Select Magic Card Request Received:", data);
@@ -163,7 +164,8 @@ io.on("connection", (socket) => {
       const startRound = await placeBet(data);
       if (startRound) {
         console.log("Round Started");
-        io.to(roomCode).emit("round-started", { Message: "Round Started",roomCode:roomCode });
+        io.to(roomCode).emit("round-started", { Message: "Round Started", roomCode: roomCode });
+        await Round({roomCode})
       }
 
       const Roomdata = await getRoomdetails(roomCode);
@@ -177,24 +179,8 @@ io.on("connection", (socket) => {
       console.error("Error in place-bet:", error);
     }
   });
-  let winners = [];
-  socket.on("start-round", async (data) => {
+  const Round = async (data) => {
     console.log("Starting cards distribution", data);
-    const cards = [
-      "2D", "2S", "2H", "2C",
-      "3D", "3S", "3H", "3C",
-      "4D", "4S", "4H", "4C",
-      "5D", "5S", "5H", "5C",
-      "6D", "6S", "6H", "6C",
-      "7D", "7S", "7H", "7C",
-      "8D", "8S", "8H", "8C",
-      "9D", "9S", "9H", "9C",
-      "JD", "JS", "JH", "JC",
-      "QD", "QS", "QH", "QC",
-      "KD", "KS", "KH", "KC",
-      "AD", "AS", "AH", "AC",
-    ];
-
     const room = await Prisma.room.findUnique({
       where: { code: data.roomCode },
       select: {
@@ -211,7 +197,7 @@ io.on("connection", (socket) => {
     }
 
     socket.emit("round-start", { message: "Round Started", magicCard: room.currentMagicCard });
-    
+
     let isZero = true; // Start with 0
     const members = await Prisma.room.findUnique({
       where: { code: data.roomCode },
@@ -225,33 +211,55 @@ io.on("connection", (socket) => {
         },
       },
     });
+    let winners = [];
+    let cards = [
+      "2D", "2S", "2H", "2C",
+      "3D", "3S", "3H", "3C",
+      "4D", "4S", "4H", "4C",
+      "5D", "5S", "5H", "5C",
+      "6D", "6S", "6H", "6C",
+      "7D", "7S", "7H", "7C",
+      "8D", "8S", "8H", "8C",
+      "9D", "9S", "9H", "9C",
+      "JD", "JS", "JH", "JC",
+      "QD", "QS", "QH", "QC",
+      "KD", "KS", "KH", "KC",
+      "AD", "AS", "AH", "AC",
+    ];
+
+    const StopInterval = () => {
+      clearInterval(intervalId)
+    }
 
     let intervalId = setInterval(async () => {
+      console.log(cards.length);
+      console.log(winners.length);
+
       if (cards.length === 0) {
-        clearInterval(intervalId); // Stop the interval when the deck is empty
+        StopInterval()// Stop the interval when the deck is empty
         socket.emit("round-ended", { message: "Round has ended. All cards distributed." });
         return;
       }
 
       const randomIndex = Math.floor(Math.random() * cards.length);
       const card = cards[randomIndex];
-      cards.splice(randomIndex, 1); // Remove the card from the deck
+      cards.splice(randomIndex, 1);
 
       const currentNumber = isZero ? 1 : 0;
-      isZero = !isZero; // Toggle between 0 and 1
+      isZero = !isZero;
 
       if (room.currentMagicCard[0] === card[0]) {  // Corrected comparison to check the first character
         for (const member of members.members) {  // Use for...of for synchronous behavior
           if (member.bettedOn === currentNumber) {
             winners.push(member);
-            console.log("Member won:", member);
+            console.log(winners);
+
           }
         }
 
         if (winners.length > 0) {
           const amount = room.pool / winners.length;
 
-          // Stop the interval when winners are found
           clearInterval(intervalId);
 
           await Prisma.roomMember.updateMany({
@@ -265,7 +273,8 @@ io.on("connection", (socket) => {
               },
             },
           });
-         const newCard = await selectRandomCard();
+          const newCard = selectRandomCard();
+          cards = [];
           await Prisma.room.update({
             where: { code: data.roomCode },
             data: {
@@ -287,7 +296,6 @@ io.on("connection", (socket) => {
               }
             }
           });
-
           io.to(data.roomCode).emit("round-ended", {
             message: "Round ended. Winners: " + winners.map(winner => winner.name).join(", "),
             winners: winners,
@@ -296,12 +304,13 @@ io.on("connection", (socket) => {
             amountWon: amount,
             roomCode: data.roomCode,
           });
+          StopInterval();
         }
       }
-      console.log(winners.length);
-        io.to(data.roomCode).emit("card-distribution", { card, number: currentNumber,winner:winners });
+      io.to(data.roomCode).emit("card-distribution", { card, number: currentNumber, winner: winners });
+
     }, 2000);
-  });
+   }
 });
 
 httpServer.listen(port, () => {
