@@ -13,8 +13,9 @@ const io = new Server(httpServer, {
 });
 
 const port = process.env.PORT || 3000;
-app.get("/", (req,res) => {
+app.get("/", async (req, res) => {
   res.send("Hello World")
+
 })
 io.on("connection", (socket) => {
   console.log("A user connected", socket.id);
@@ -250,12 +251,11 @@ io.on("connection", (socket) => {
       const currentNumber = isZero ? 1 : 0;
       isZero = !isZero;
 
-      if (room.currentMagicCard[0] === card[0]) {  // Corrected comparison to check the first character
-        for (const member of members.members) {  // Use for...of for synchronous behavior
+      if (room.currentMagicCard[0] === card[0]) {  
+        for (const member of members.members) {  
           if (member.bettedOn === currentNumber) {
             winners.push(member);
             console.log(winners);
-
           }
         }
 

@@ -257,27 +257,28 @@ export const placeBet = async (data: { roomCode: string, solAddress: string, bet
         if (!roomMember) {
             return { message: 'Room member not found', success: false };
         }
-
+        const Betted = roomMember.bettedOn !== null;
         // Place the bet
-        await Prisma.roomMember.update({
-            where: {
-                userId_roomId: {
-                    userId: user.id,
-                    roomId: room.id,
+        if (!Betted) {
+            await Prisma.roomMember.update({
+                where: {
+                    userId_roomId: {
+                        userId: user.id,
+                        roomId: room.id,
+                    },
                 },
-            },
-            data: {
-                betQty: data.betQty,
-                bettedOn: data.bettedOn,
-            },
-        });
-        await Prisma.room.update({
-            where: { code: data.roomCode },
-            data: {
-                pool: room.pool + data.betQty,
-            },
-        })
-
+                data: {
+                    betQty: data.betQty,
+                    bettedOn: data.bettedOn,
+                },
+            });
+            await Prisma.room.update({
+                where: { code: data.roomCode },
+                data: {
+                    pool: room.pool + data.betQty,
+                },
+            })
+        }
         const updatedRoom = await Prisma.room.findUnique({
             where: { code: data.roomCode },
             select: {
@@ -291,9 +292,9 @@ export const placeBet = async (data: { roomCode: string, solAddress: string, bet
         });
         let RoundStart = false;
         const allBetsPlaced =
-            updatedRoom.members.length > 0 && // Ensure there are members in the room
-            !updatedRoom.RoundStarted && // Use the updated state of RoundStarted
-            updatedRoom.members.every((member) => member.bettedOn !== null); // Check if all have placed bets
+            updatedRoom.members.length > 1 && 
+            !updatedRoom.RoundStarted && 
+            updatedRoom.members.every((member) => member.bettedOn !== null); 
 
         console.log("All bets placed:", allBetsPlaced);
 
