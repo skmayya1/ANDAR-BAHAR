@@ -1,19 +1,21 @@
 import express from 'express';
 import { createServer } from "http";
 import { Server } from "socket.io";
-import {  createAndUpdateRoom, getRoomdetails, getRoomMembers, leaveRoom, placeBet, selectRandomCard } from './Utils/lib';
+import {  createAndUpdateRoom, getRoomdetails, leaveRoom, placeBet, selectRandomCard } from './Utils/lib';
 import Prisma from './Utils/Prisma';
 
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: { origin: "*" },
-  pingTimeout: 60000,  // Set the timeout duration in milliseconds
-  pingInterval: 25000  // Set the interval at which pings are sent to keep the connection alive
+  pingTimeout: 60000,  
+  pingInterval: 25000 
 });
 
 const port = process.env.PORT || 3000;
-
+app.get("/", (req,res) => {
+  res.send("Hello World")
+})
 io.on("connection", (socket) => {
   console.log("A user connected", socket.id);
 
