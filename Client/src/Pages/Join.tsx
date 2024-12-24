@@ -79,7 +79,7 @@ const Join = () => {
           <button
             onClick={handleCreate}
             className="w-full p-2 rounded-lg mt-1 text-white hover:border-zinc-300 border-transparent transition-all ease-in-out duration-300 border-b border-l shadow shadow-zinc-400  font-mono">
-            Create
+            Create / Join
           </button>
         </div>
       </div>

@@ -104,7 +104,7 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     }
 
     useEffect(() => {
-        const newSocket = io('http://localhost:3000', {
+        const newSocket = io('https://andar-bahar-server.onrender.com', {
             reconnection: true, // Enable auto-reconnection
             reconnectionAttempts: Infinity, // Retry indefinitely
             reconnectionDelay: 1000, // Delay before retry
