@@ -285,6 +285,7 @@ io.on("connection", (socket) => {
                 increment: 1,
               },
               RoundStarted: false,
+              pool: 0,
               members: {
                 updateMany: {
                   where: {
@@ -311,7 +312,7 @@ io.on("connection", (socket) => {
       }
       io.to(data.roomCode).emit("card-distribution", { card, number: currentNumber, winner: winners });
 
-    }, 2000);
+    }, 1000);
    }
 });
 

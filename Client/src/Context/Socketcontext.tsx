@@ -104,7 +104,7 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
     }
 
     useEffect(() => {
-        const newSocket = io('https://andar-bahar-server.onrender.com', {
+        const newSocket = io('http://localhost:3000', {  //https://andar-bahar-server.onrender.com
             reconnection: true, // Enable auto-reconnection
             reconnectionAttempts: Infinity, // Retry indefinitely
             reconnectionDelay: 1000, // Delay before retry
@@ -232,7 +232,20 @@ export const SocketProvider = ({ children }: SocketProviderProps): ReactElement 
                 transition: Bounce,
             });
             setcurrCarddata(undefined)
-         })
+        })
+        newSocket.on("something-error", (data) => {
+            toast.error(data.Message, {
+                position: "bottom-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+                transition: Bounce,
+            });
+        })
 
         return () => {
             newSocket.disconnect();
